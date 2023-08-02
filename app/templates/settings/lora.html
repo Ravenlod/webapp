@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Настройка LoRa{% endblock %}
+{% block title_page %}Настройка LoRa модема{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <p class="fs-5">Статус модема <span class="badge bg-success">connected</span></p>
+</div>
+<form class="was-validated" method="POST">
+    {{ form.csrf_token }}
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-{{ form.appkey.name }}">{{ form.appkey.label }}</span>
+        <input placeholder="Пример: A7CDD6A3E44ECE268005952F9536BA7A" value="{{ loraappkey }}"
+               type="text" maxlength="32" minlength="32"
+               class="form-control" id="{{ form.appkey.name }}" name="{{ form.appkey.name }}"
+               required>
+    </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-{{ form.deviceAddress.name }}">{{ form.deviceAddress.label }}</span>
+        <input placeholder="Пример: 017c3146" value="{{ deviceAddress }}"
+               type="text" maxlength="32" minlength="6"
+               class="form-control" id="{{ form.deviceAddress.name }}" name="{{ form.deviceAddress.name }}"
+               required>
+    </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-{{ form.lorafport.name }}">{{ form.lorafport.label }}</span>
+        <input placeholder="Диапазон от 1 до 233" value="{{ lorafport }}"
+               type="text" maxlength="3" minlength="1"
+               class="form-control" id="{{ form.lorafport.name }}" name="{{ form.lorafport.name }}"
+               required>
+    </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-{{ form.loraregion.name }}">{{ form.loraregion.label }}</span>
+        <select class="form-select" id="{{ form.loraregion.name }}" name="{{ form.loraregion.name }}" aria-label="{{ form.loraregion.name }}">
+            {% for label, val in choise_region %}
+                {% if val == loraregions %}
+                    <option value="{{ val }}" selected>{{ label }}</option>
+                {% else %}
+                    <option value="{{ val }}">{{ label }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon2">{{ form.mqtttopics.label }}</span>
+        <input placeholder="Пример: /sensor1/#/temp" value="{{ mqtttopic }}"
+               type="text" minlength="1"
+               class="form-control" id="{{ form.mqtttopics.name }}" name="{{ form.mqtttopics.name }}"
+               required>
+    </div>
+    <div class="clearfix">
+        <button type="submit" class="btn btn-primary float-start">Сохранить</button>
+        <a class="float-end" href="{{ '/settings/lora?sw-reset=y' }}">
+          <button type="submit" class="btn btn-danger">
+              Программный сброс модема
+          </button>
+        </a>
+    </div>
+    {% if form.errors %}
+        <ul class="errors">
+        {% for error in form.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+</form>
+<br>
+{% endblock %}

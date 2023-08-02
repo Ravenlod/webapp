@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Шаблоны конфигураций{% endblock %}
+{% block title_page %}Панель управления конфигурациями{% endblock %}
+{% block content %}
+    <div class="mb-3">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+                <br>
+              <div class="alert alert-danger shadow-sm p-3 mb-5 rounded" role="alert">
+                  {{ message }}
+              </div>
+            {% endfor %}
+    </div>
+          {% else %}
+    <div class="clearfix py-2">
+        <p class="lead float-start">Загруженные шаблоны конфигурации:</p>
+        <div class="float-end d-grid gap-2 d-md-block">
+            <a href="{{ url_for('sensors.add_sensor') }}">
+            <button type="button" class="btn btn-success">
+                <svg class="bi me-2 theme-icon"><use href="#code_icon"></use></svg>Написать шаблон
+            </button>
+            </a>
+            <a href="{{ url_for('sensors.upload_sensor') }}">
+            <button type="button" class="btn btn-success">
+                <svg class="bi me-2 theme-icon"><use href="#plus"></use></svg>Загрузить шаблон
+            </button>
+            </a>
+        </div>
+    </div>
+    <ol class="list-group list-group-numbered">
+    {% for sensor in sensors_list %}
+      <li class="list-group-item">
+          {{ sensor[0] }}
+          {% if sensor[1] %}
+          <text class="text-secondary-emphasis">: {{ sensor[1] }}</text>
+          {% endif %}
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end text-end">
+              {% if sensor[2] == True %}
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0]) }}">
+                  <button type="submit" class="btn btn-warning btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-pencil-square"></use></svg>
+                      Редактировать
+                  </button>
+              </a>
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], view='y') }}">
+                  <button type="submit" class="btn btn-primary btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-eye"></use></svg>
+                      Оригинал
+                  </button>
+              </a>
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], download='y') }}">
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#download"></use></svg>
+                      Скачать
+                  </button>
+              </a>
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], disable='y') }}">
+                  <button type="submit" class="btn btn-danger btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-stop-circle-fill"></use></svg>
+                      Отключить
+                  </button>
+              </a>
+              {% else %}
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], enable='y') }}">
+                  <button type="submit" class="btn btn-success btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-play-circle-fill"></use></svg>
+                      Включить
+                  </button>
+              </a>
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], view='y') }}">
+                  <button type="submit" class="btn btn-primary btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-eye"></use></svg>
+                      Оригинал
+                  </button>
+              </a>
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], download='y') }}">
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#download"></use></svg>
+                      Скачать
+                  </button>
+              </a>
+              <a href="{{ url_for('sensors.sensor', sensor_name=sensor[0], delete='y') }}">
+                  <button type="submit" class="btn btn-danger btn-sm">
+                      <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-trash3-fill"></use></svg>
+                      Удалить
+                  </button>
+              </a>
+              {% endif %}
+              </div>
+      </li>
+    {% endfor %}
+            </div>
+    </ol>
+          {% endif %}
+        {% endwith %}
+{% endblock %}

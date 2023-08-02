@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Настрока конфигурации{% endblock %}
+{% block title_page %}Настрока датчика{% endblock %}
+{% block content %}
+
+<script src="{{ url_for('static', filename='codemirror/lib/codemirror.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='codemirror/lib/codemirror.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='codemirror/theme/dracula.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='codemirror/addon/hint/show-hint.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='codemirror/addon/display/fullscreen.css') }}">
+<script src="{{ url_for('static', filename='codemirror/mode/toml/toml.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/selection/active-line.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/search/searchcursor.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/search/match-highlighter.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/hint/show-hint.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/hint/anyword-hint.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/edit/closebrackets.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/edit/trailingspace.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/display/fullscreen.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/edit/matchbrackets.js') }}"></script>
+<style type="text/css">
+.CodeMirror {
+    height: auto;
+}
+.CodeMirror-focused .cm-matchhighlight {
+        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVQI12NgYGBgkKzc8x9CMDAwAAAmhwSbidEoSQAAAABJRU5ErkJggg==);
+        background-position: bottom;
+        background-repeat: repeat-x;
+      }
+      .cm-matchhighlight {background-color: rgba(0, 255, 0, 0.2)}
+.cm-trailingspace {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAYAAAB/qH1jAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QUXCToH00Y1UgAAACFJREFUCNdjPMDBUc/AwNDAAAFMTAwMDA0OP34wQgX/AQBYgwYEx4f9lQAAAABJRU5ErkJggg==);
+    background-position: bottom left;
+    background-repeat: repeat-x;
+}
+.CodeMirror-fullscreen {
+    top: 5em;
+}
+.cm-s-dracula .CodeMirror-matchingbracket { text-decoration: none; color: #f5f502 !important; }
+</style>
+<form class="g-3" method="POST" action="{{ current_sensor + '?upg=y' }}">
+    <button class="btn btn-primary" type="submit" value="Применить">
+        Применить
+    </button>
+    <br><pre>
+        <textarea class="form-control" id="{{ form_conf.conf_text_area.name }}"
+                  name="{{ form_conf.conf_text_area.name }}"
+                  rows="25">{{ text }}</textarea>
+    </pre>
+</form>
+
+<script type="text/javascript">
+CodeMirror.commands.autocomplete = function(cm) {
+        cm.showHint({hint: CodeMirror.hint.anyword});
+      }
+var editor = CodeMirror.fromTextArea(
+    document.getElementById('{{ form_conf.conf_text_area.name }}'), {
+        mode:'toml',
+        theme: 'dracula',
+        lineNumbers: true,
+        styleActiveLine: true,
+        lineWrapping: true,
+        highlightSelectionMatches: {showToken: /\w/},
+        extraKeys: {
+          "Ctrl-Space": "autocomplete",
+          "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+          },
+          "Esc": function(cm) {
+            if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+          }
+        },
+        autoCloseBrackets: true,
+        showTrailingSpace: true,
+        matchBrackets: true,
+        showCursorWhenSelecting: true
+        });
+</script>
+
+{% endblock %}

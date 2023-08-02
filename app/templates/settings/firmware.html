@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Обновление прошивки{% endblock %}
+{% block title_page %}Обновление прошивки{% endblock %}
+{% block content %}
+
+<div class="row md-6 d-flex justify-content-center">
+    <div class="col-md-6">
+    <div class="card">
+        <div class="card-header">
+            Текущие версии
+        </div>
+        <table class="table table-hover table-striped table-borderless text-center" style="margin: auto;">
+            <tr>
+              <th scope="row">Аппаратная версия:</th>
+              <td>{{ config.HW_VERSION }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Версия ПО:</th>
+              <td>{{ config.SW_VERSION }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Версия web:</th>
+              <td>{{ config.WEB_VERSION }}</td>
+            </tr>
+        </table>
+<!--        <ul class="list-group list-group-flush">-->
+<!--            <li class="list-group-item white-space">test</li>-->
+<!--        </ul>-->
+    </div>
+        </div>
+</div>
+<br>
+<div class="row d-flex justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header">
+               Обновление прошивки
+            </div>
+            <div class="card-body">
+                <form class="g-3" method="POST" action="{{ url_for('settings.firmware_settings') }}" enctype="multipart/form-data">
+                    <input class="form-control" type="file" name="firmware" accept=".swu" id="firmware" />
+                    <br>
+                    <button class="btn btn-primary" type="submit" value="Применить">
+                        Обновить
+                    </button>
+                </form>
+            </div>
+        </div>
+        <br>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}LoRa-cross | Главная страница{% endblock %}
+{% block title_page %}Доступные конфигурации датчиков для опроса:{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <ol class="list-group">
+    {% for sensor, active in sensors_list %}
+      <li class="list-group-item">
+        <div class="row justify-content-start">
+          {% if active == True %}
+          <div class="col">
+            <a href="{{ url_for('sensors.sensor', sensor_name=sensor) }}">
+              {{sensor}}
+            </a>
+          </div>
+        <div class="col text-end">
+            <span class="badge bg-success">Конфигурация активна</span>
+        </div>
+        {% else %}
+          <div class="col">
+              {{sensor}}
+          </div>
+          <div class="col text-end">
+          <span class="badge bg-danger">Конфигурация неактивна</span>
+          </div>
+        {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ol>
+</div>
+
+{% endblock %}

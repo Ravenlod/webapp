@@ -1,0 +1,107 @@
+.bi {
+    width: 1em;
+    height: 1em;
+    vertical-align: -.125em;
+    fill: currentcolor;
+}
+
+.dropdown-item-danger {
+  color: var(--bs-red) !important;
+}
+.dropdown-item-danger:hover,
+.dropdown-item-danger:focus {
+  color: #fff !important;
+  background-color: var(--bs-red) !important;
+}
+.dropdown-item-danger.active {
+  background-color: var(--bs-red) !important;
+}
+
+.navbar {
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+}
+
+.navbar {
+    background: rgba(227, 242, 253, .6);
+}
+
+.navbar ul.dropdown-menu {
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+}
+
+.navbar ul.dropdown-menu {
+    background: rgba(255, 255, 255, .9);
+}
+
+[data-bs-theme=dark] nav ul.dropdown-menu {
+  background: rgba(22, 22, 23, .9);
+}
+
+[data-bs-theme=dark] .navbar {
+  background: rgba(22, 22, 23, .6);
+}
+
+ul.dropdown-menu {
+    --bs-dropdown-padding-x: .25rem;
+    --bs-dropdown-padding-y: .25rem;
+    --bs-dropdown-link-hover-bg: rgba(227, 242, 253, .6);
+    font-size: .875rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+ul.dropdown-menu li + li {
+    margin-top: .125rem;
+}
+
+[data-bs-theme=dark] ul.dropdown-menu {
+  --bs-dropdown-link-hover-bg: rgba(32, 63, 84, .6);
+}
+
+ul.dropdown-menu .active {
+  font-weight: 600;
+  background-color: #0072b4;
+}
+
+ul.dropdown-item.active, ul.dropdown-item:active {
+    font-weight: 600;
+    background-color: #0072b4;
+}
+
+.dropdown-menu .dropdown-item {
+      border-radius: .25rem;
+}
+
+.navbar .navbar-toggler,
+.navbar .navbar-toggler .navbar-toggler-icon,
+.navbar .nav-item .nav-link {
+ padding-right:.25rem;
+ padding-left:.25rem;
+ /*color:rgba(87,87,87,1);*/
+}
+
+
+.navbar .nav-item .nav-link:hover,
+.navbar .nav-item .nav-link:focus {
+ color:rgba(87,87,87,0.7);
+}
+
+.white-space {
+ white-space: pre-wrap;
+}
+
+[data-bs-theme=dark] footer {
+  background: rgba(22, 22, 23, .6);
+}
+
+footer {
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    position: absolute;
+}
+
+#page-container {
+  position: relative;
+  min-height: 100vh;
+}

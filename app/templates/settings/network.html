@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Настройка сети{% endblock %}
+{% block title_page %}Настройка сети{% endblock %}
+{% block content %}
+
+<div class="row d-flex justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header">
+               Сеть
+            </div>
+            <div class="card-body">
+                <form class="g-3" method="post" action="{{ url_for('settings.network_settings') }}">
+                    <div class="form-check form-switch text-start">
+                        <label class="form-check-label" for="{{ nw_form.dhcp.name }}">{{ nw_form.dhcp.label }}</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="{{ nw_form.dhcp.name }}"
+                        name="{{ nw_form.dhcp.name }}" {% if dhcp_status %} checked {% endif %}>
+                    </div>
+                    <br>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-{{ nw_form.ip.name }}">{{ nw_form.ip.label }}</span>
+                        <input placeholder="Пример: 192.168.1.10/24" value="{{ ip }}"
+                               class="form-control" id="{{ nw_form.ip.name }}" name="{{ nw_form.ip.name }}"
+                               required {% if dhcp_status %} disabled readonly {% endif %}>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-{{ nw_form.gw.name }}">{{ nw_form.gw.label }}</span>
+                        <input placeholder="Пример: 192.168.1.1" value="{{ gw }}"
+                               class="form-control" id="{{ nw_form.gw.name }}" name="{{ nw_form.gw.name }}"
+                               required {% if dhcp_status %} disabled readonly {% endif %}>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-{{ nw_form.dns.name }}">{{ nw_form.dns.label }}</span>
+                        <input placeholder="Пример: 1.1.1.1" value="{{ dns }}"
+                               class="form-control" id="{{ nw_form.dns.name }}" name="{{ nw_form.dns.name }}"
+                               required {% if dhcp_status %} disabled readonly {% endif %}>
+                    </div>
+                    <button class="btn btn-primary" type="submit" value="Применить">
+<!--                        <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-box-arrow-in-right"></use></svg>-->
+                        Применить
+                    </button>
+                </form>
+            </div>
+        </div>
+        <br>
+            <div class="card">
+              <div class="card-header">
+                Текущие сетевые настройки
+              </div>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item white-space">{{ ip_current }}</li>
+              </ul>
+            </div>
+        <div class="mb-3">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+                <br>
+              <div class="alert alert-danger shadow-sm p-3 mb-5 rounded" role="alert">
+                  {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        </div>
+    </div>
+</div>
+<script>
+    const disableInputsCheckbox = document.getElementById("{{ nw_form.dhcp.name }}");
+    const input1 = document.getElementById('{{ nw_form.ip.name }}');
+    const input2 = document.getElementById('{{ nw_form.gw.name }}');
+    const input3 = document.getElementById('{{ nw_form.dns.name }}');
+
+    disableInputsCheckbox.addEventListener("change", () => {
+      if (disableInputsCheckbox.checked) {
+        input1.disabled = true;
+        input2.disabled = true;
+        input3.disabled = true;
+        input1.setAttribute("readonly", true);
+        input2.setAttribute("readonly", true);
+        input3.setAttribute("readonly", true);
+      } else {
+        input1.disabled = false;
+        input2.disabled = false;
+        input3.disabled = false;
+        input1.removeAttribute("readonly");
+        input2.removeAttribute("readonly");
+        input3.removeAttribute("readonly");
+      }
+    });
+</script>
+{% endblock %}

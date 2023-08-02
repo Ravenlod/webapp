@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Шаблоны конфигураций{% endblock %}
+{% block title_page %}Загрузка конфигурации датчика{% endblock %}
+{% block content %}
+    <p class="fw-lighter">Максимальный размер файла 15KB (*.conf)</p>
+    <div class="mb-3">
+        <form action = "{{ url_for('sensors.upload_sensor') }}" method = "POST" enctype = "multipart/form-data">
+          <input class="form-control" type="file" name = "file" accept=".conf" id="formFile" />
+            <br>
+            <button type="submit" class="btn btn-primary">
+                <svg class="bi me-1 opacity-75 theme-icon"><use href="#bi-upload"></use></svg>
+                Загрузить
+            </button>
+        </form>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+            <br>
+              <div class="alert alert-danger shadow-sm p-3 mb-5 rounded" role="alert">
+                  {{ message }}
+              </div>
+            {% endfor %}
+
+          {% else %}
+          {% endif %}
+        {% endwith %}
+    </div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %} Системная информация {% endblock %}
+{% block title_page %}Системная информация{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-motherboard">
+      </use></svg>Система
+  </div>
+  <ul class="list-group list-group-flush">
+      <li class="list-group-item white-space"><svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-cpu-fill">
+      </use></svg>CPU avg: {{ cpu_avg }}</li>
+      <li class="list-group-item white-space"><svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-memory">
+      </use></svg><p>RAM: {{ ram }}</li>
+      <li class="list-group-item white-space"><svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-hdd">
+      </use></svg>{{ disk }}</li>
+      <li class="list-group-item"><svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-database">
+        </use></svg>Database size: {{ db }}
+        <!-- Button trigger modal -->
+        <button type="submit" class="btn btn-sm btn-danger float-end" data-bs-toggle="modal" data-bs-target="#cleaDB">
+            <svg class="bi opacity-75 theme-icon"><use href="#bi-trash3-fill"></use></svg>
+        </button>
+        <!-- modal -->
+        <div class="modal fade" id="cleaDB" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 class="modal-title fs-5" id="staticBackdropLabel">Очистка базы данных</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <p>Вы действительно хотите очистить базу данных с <b>показаниями</b> ваших датчиков ?</p>
+                  <p>Если вы соглашаетесь, то эти данные будут утеряны навсегда!</p>
+              </div>
+              <div class="modal-footer">
+                  <a class="float-end" href="{{ url_for('settings.index', dbclean='y') }}">
+                    <button type="button" class="btn btn-danger">Да</button>
+                  </a>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+      <div class="card-footer">
+          <div class="d-grid gap-2 d-md-flex justify-content-center">
+            <!-- Button trigger modal -->
+            <button type="submit" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#reboot">
+                <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-bootstrap-reboot"></use></svg>Перезагрузка
+            </button>
+            <!-- modal -->
+            <div class="modal fade" id="reboot" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                 aria-labelledby="staticReboot" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="staticReboot">Перезагрузка</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p>Перезагрузить устройство ?</p>
+                  </div>
+                  <div class="modal-footer">
+                      <a class="float-end" href="{{ url_for('settings.index', reboot='y') }}">
+                        <button type="button" class="btn btn-danger">Да</button>
+                      </a>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Button trigger modal -->
+            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#poweroff">
+                <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-power"></use></svg>Выключение
+            </button>
+            <!-- modal -->
+            <div class="modal fade" id="poweroff" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                 aria-labelledby="staticPoweroff" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="staticPoweroff">Выключить</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p>Выключить устройство ?</p>
+                  </div>
+                  <div class="modal-footer">
+                      <a class="float-end" href="{{ url_for('settings.index', poweroff='y') }}">
+                        <button type="button" class="btn btn-danger">Да</button>
+                      </a>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+  </ul>
+</div>
+<br>
+<div class="card">
+  <div class="card-header">
+    <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-clock">
+      </use></svg>Дата и время
+  </div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Текущее время: {{ date }}
+        <!-- Button trigger modal -->
+        <button type="submit" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#tzauto">
+            <svg class="bi opacity-75 theme-icon"><use href="#bi-clock"></use></svg>
+        </button>
+        <!-- modal -->
+        <div class="modal fade" id="tzauto" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="tzautoLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 class="modal-title fs-5" id="tzautoLabel">Установка временной зоны</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <p>Установить время на основе текущего местоположения* ?</p>
+                  <p><small class="text-body-secondary">*Для работы данной функции требуется доступ в интернет</small></p>
+              </div>
+              <div class="modal-footer">
+                  <a class="float-end" href="{{ url_for('settings.index', tzauto='y') }}">
+                    <button type="button" class="btn btn-danger">Да</button>
+                  </a>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End modal -->
+    </li>
+    <li class="list-group-item">Время работы: {{ uptime }}</li>
+  </ul>
+</div>
+<br>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+    <br>
+      <div class="alert alert-danger shadow-sm p-3 mb-5 rounded" role="alert">
+          {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+<div class="card">
+  <div class="card-header">
+    <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-list-task">
+      </use></svg>Системные службы
+  </div>
+  <ul class="list-group list-group-flush">
+      {% for service, status in service_status %}
+        <li class="list-group-item">
+            <div class="row justify-content-start">
+          <div class="col">
+              {{ service }}
+          </div>
+        {% if status == 'active' %}
+            <div class="col text-end">
+              <span class="badge bg-success">Служба запущена</span>
+            </div>
+        {% else %}
+          <div class="col text-end">
+          <span class="badge bg-secondary">
+              Служба остановлена
+          </span>
+          </div>
+        {% endif %}
+            </div>
+        </li>
+      {% endfor %}
+  </ul>
+</div>
+<br>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Датчик тока{% endblock %}
+{% block title_page %}Показания встроенного датчика тока{% endblock %}
+{% block content %}
+
+    <div class="container-fluid ratio ratio-4x3">
+<!--        <iframe src="http://{{ local_ip }}:3000/d/eUO0dDAVk/fs-c1?orgId=1&refresh=10s&kiosk=tv&theme=light"></iframe>-->
+        <iframe src="http://10.20.30.182:3000/d/eUO0dDAVk/fs-c1?orgId=1&refresh=10s&kiosk=tv&theme=light"></iframe>
+    </div>
+  <script>
+    // Get the iframe element
+    const iframe = document.querySelector('iframe');
+
+    // Get the <html> element
+    const html = document.querySelector('html');
+
+    // Create a new MutationObserver instance
+    const observer = new MutationObserver((mutations) => {
+      // Loop through the mutations
+      mutations.forEach((mutation) => {
+        // Check if the data-bs-theme attribute changed from light to dark
+        if (
+          mutation.attributeName === 'data-bs-theme' &&
+          mutation.target.getAttribute('data-bs-theme') === 'dark'
+        ) {
+          // Update the iframe src to use the dark theme
+          iframe.src = iframe.src.replace('theme=light', 'theme=dark');
+        }
+        // Check if the data-bs-theme attribute changed from dark to light
+        else if (
+          mutation.attributeName === 'data-bs-theme' &&
+          mutation.target.getAttribute('data-bs-theme') === 'light'
+        ) {
+          // Update the iframe src to use the light theme
+          iframe.src = iframe.src.replace('theme=dark', 'theme=light');
+        }
+      });
+    });
+
+    // Start observing changes to the <html> element's attributes
+    observer.observe(html, { attributes: true });
+  </script>
+{% endblock %}
