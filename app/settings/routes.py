@@ -8,6 +8,7 @@ from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
 from flask import render_template, flash, current_app, request, redirect, url_for, jsonify
+from pydbus import SystemBus
 
 from app.utils import sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_network_config, \
     SysConfig, sys_service_restart, db_size, db_clean, sys_auto_timezone, sys_reboot, sys_poweroff
@@ -304,4 +305,4 @@ def routes(bp):
                 print('Modem not found')
                 return False
         show_modem = modem_info()
-        return render_template('index.html', show_modem=show_modem)
+        return render_template('settings/temp.html', show_modem=show_modem)
