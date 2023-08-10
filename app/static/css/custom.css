@@ -5,6 +5,16 @@
     fill: currentcolor;
 }
 
+.none-decoration {
+    color: 007fbb;
+    text-decoration: none;
+}
+
+.disabled {
+    color: gray;
+    pointer-events: none;
+}
+
 .dropdown-item-danger {
   color: var(--bs-red) !important;
 }
@@ -105,3 +115,4 @@ footer {
   position: relative;
   min-height: 100vh;
 }
+

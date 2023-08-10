@@ -5,8 +5,8 @@
     <meta name="theme-color" content="#e3f2fd">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="/static/favicon.ico">
-    <link href="/static/css/custom.css" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename = 'favicon.ico') }}">
+    <link href="{{ url_for('static', filename = 'css/custom.css') }}" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="{{ url_for('static', filename = 'css/bootstrap.min.css') }}" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
@@ -184,6 +184,12 @@
       <symbol id="bi-toggles" viewBox="0 0 16 16">
         <path d="M4.5 9a3.5 3.5 0 1 0 0 7h7a3.5 3.5 0 1 0 0-7h-7zm7 6a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm-7-14a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm2.45 0A3.49 3.49 0 0 1 8 3.5 3.49 3.49 0 0 1 6.95 6h4.55a2.5 2.5 0 0 0 0-5H6.95zM4.5 0h7a3.5 3.5 0 1 1 0 7h-7a3.5 3.5 0 1 1 0-7z"/>
       </symbol>
+      <symbol id="bi-router" viewBox="0 0 16 16">
+        <path d="M5.525 3.025a3.5 3.5 0 0 1 4.95 0 .5.5 0 1 0 .707-.707 4.5 4.5 0 0 0-6.364 0 .5.5 0 0 0 .707.707Z"/>
+        <path d="M6.94 4.44a1.5 1.5 0 0 1 2.12 0 .5.5 0 0 0 .708-.708 2.5 2.5 0 0 0-3.536 0 .5.5 0 0 0 .707.707ZM2.5 11a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1Zm4.5-.5a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0Zm2.5.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1Zm1.5-.5a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0Zm2 0a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0Z"/>
+        <path d="M2.974 2.342a.5.5 0 1 0-.948.316L3.806 8H1.5A1.5 1.5 0 0 0 0 9.5v2A1.5 1.5 0 0 0 1.5 13H2a.5.5 0 0 0 .5.5h2A.5.5 0 0 0 5 13h6a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5h.5a1.5 1.5 0 0 0 1.5-1.5v-2A1.5 1.5 0 0 0 14.5 8h-2.306l1.78-5.342a.5.5 0 1 0-.948-.316L11.14 8H4.86L2.974 2.342ZM14.5 9a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h13Z"/>
+        <path d="M8.5 5.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/>
+      </symbol>
     </svg>
 
     <nav class="navbar border-bottom sticky-top navbar-expand-md">
@@ -257,6 +263,17 @@
                 <li>
                   <hr class="dropdown-divider">
                 </li>
+
+                <li>
+                    <a class="{% if is_modem_settings %}disabled{% endif %} dropdown-item" href="{{ url_for('settings.modem_settings') }}">
+                    <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
+                    LTE-модем
+                    </a>
+                </li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+
                 <li>
                   <a class="dropdown-item" href="{{ url_for('settings.lora_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-wifi"></use></svg>
