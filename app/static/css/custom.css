@@ -5,6 +5,11 @@
     fill: currentcolor;
 }
 
+.disabled {
+    color: gray;
+    pointer-events: none;
+}
+
 .dropdown-item-danger {
   color: var(--bs-red) !important;
 }

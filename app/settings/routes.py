@@ -50,7 +50,8 @@ def routes(bp):
 
             for s in service_installed:
                 name = str(s).split(".")[0]
-                status = subprocess.check_output(f"systemctl show -p ActiveState --value {name}", universal_newlines=True,
+                status = subprocess.check_output(f"systemctl show -p ActiveState --value {name}",
+                                                 universal_newlines=True,
                                                  shell=True)
                 status = str(status).split("\n")[0]
                 service_status.append((name, status))
@@ -95,7 +96,6 @@ def routes(bp):
             service_status=service_status,
             db=db,
         )
-
 
     @bp.route('/lora', methods=['GET', 'POST'])
     @login_required
@@ -173,7 +173,6 @@ def routes(bp):
             deviceAddress=deviceAddress
         )
 
-
     @bp.route("/network", methods=['GET', 'POST'])
     @login_required
     def network_settings():
@@ -204,7 +203,6 @@ def routes(bp):
             ip_current=network.ip_current()
         )
 
-
     @bp.route("/firmware", methods=['GET', 'POST'])
     @login_required
     def firmware_settings():
@@ -223,9 +221,14 @@ def routes(bp):
         return render_template(
             'settings/firmware.html'
         )
-    @bp.route("/temp", methods=['GET', 'POST'])
+
+    @bp.route("/modem", methods=['GET', 'POST'])
     @login_required
-    def temp():
+    def modem_settings():
+        show_modem = modem_show()
+        return render_template("/settings/modem.html", show_modem=show_modem)
+
+    def modem_show():
         def modem_current():
             bus = SystemBus()
             try:
@@ -304,5 +307,6 @@ def routes(bp):
             except:
                 print('Modem not found')
                 return False
+
         show_modem = modem_info()
-        return render_template('settings/temp.html', show_modem=show_modem)
+        return show_modem

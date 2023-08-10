@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Данные с модема{% endblock %}
+{% block title_page %}Данные с модема{% endblock %}
+{% block content %}
+
+    {% if show_modem %}
+        {% for Key, Value in show_modem.items() %}
+            <p>{{ Key | safe }}: {{ Value | safe }}</p>
+        {% endfor %}
+    {% else %}
+        <h1>Модем не найден!</h1>
+    {% endif %}
+
+
+{% endblock %}
