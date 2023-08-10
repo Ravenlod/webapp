@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from config import Config
 from app.extensions import db
 
+from werkzeug.exceptions import HTTPException
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -40,6 +41,19 @@ def create_app(config_class=Config):
 
     from app.sensors import bp as sensors_bp
     app.register_blueprint(sensors_bp, url_prefix='/sensors')
+
+
+    #Error Handlers
+    app.register_error_handler(500, 'errors/internal_error.html')
+    app.register_error_handler(404, 'errors/page_not_found.html')
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        if not isinstance(e, HTTPException):
+            return render_template('errors/internal_error.html', e=e), 500
+    @app.errorhandler(404)
+    def page_not_found(e):
+            return render_template('errors/page_not_found.html'), 404
 
     @app.route('/health')
     def test_page():

@@ -15,6 +15,7 @@ from app.utils import sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_
 
 
 def routes(bp):
+
     @bp.route("/", methods=['GET'])
     @login_required
     def index():
@@ -184,7 +185,7 @@ def routes(bp):
         gw_status = network.net_config_read('Gateway')
         dns_status = network.net_config_read('DNS')
 
-        # TODO: В html template сделать валидацию
+        #  TODO: В html template сделать валидацию
         if request.method == 'POST':
             dhcp = request.form.get(nw_form.dhcp.name)
             ip = request.form.get(nw_form.ip.name)

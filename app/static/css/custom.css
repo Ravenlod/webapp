@@ -5,6 +5,11 @@
     fill: currentcolor;
 }
 
+.none-decoration {
+    color: 007fbb;
+    text-decoration: none;
+}
+
 .disabled {
     color: gray;
     pointer-events: none;
