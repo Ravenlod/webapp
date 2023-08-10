@@ -5,8 +5,8 @@
     <meta name="theme-color" content="#e3f2fd">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="/static/favicon.ico">
-    <link href="/static/css/custom.css" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename = 'favicon.ico') }}">
+    <link href="{{ url_for('static', filename = 'css/custom.css') }}" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="{{ url_for('static', filename = 'css/bootstrap.min.css') }}" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
@@ -263,9 +263,9 @@
                 <li>
                   <hr class="dropdown-divider">
                 </li>
-                {% if not show_modem %}
+
                 <li>
-                    <a class="dropdown-item" href="{{ url_for('settings.modem_settings') }}">
+                    <a class="{% if is_modem_settings %}disabled{% endif %} dropdown-item" href="{{ url_for('settings.modem_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
                     LTE-модем
                     </a>
@@ -273,7 +273,7 @@
                 <li>
                   <hr class="dropdown-divider">
                 </li>
-                {% endif %}
+
                 <li>
                   <a class="dropdown-item" href="{{ url_for('settings.lora_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-wifi"></use></svg>

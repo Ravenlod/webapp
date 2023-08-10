@@ -226,7 +226,7 @@ def routes(bp):
     @login_required
     def modem_settings():
         show_modem = modem_show()
-        return render_template("/settings/modem.html", show_modem=show_modem)
+        return render_template("/settings/modem.html", show_modem=show_modem, is_modem_settings = True)
 
     def modem_show():
         def modem_current():
@@ -287,21 +287,23 @@ def routes(bp):
                     obj_sim = bus.get('.ModemManager1', current_modem.Sim)
                     current_sim = obj_sim['org.freedesktop.ModemManager1.Sim']
 
+                    info['manufacturer'] = str(current_modem.Manufacturer)
+                    info['model'] = str(current_modem.Model)
                     info['operator'] = str(current_sim.OperatorName)
-                    info['active'] = bool(current_sim.Active)
-                    info['signal'] = int(current_modem.SignalQuality[0])
-                    info['simId'] = str(current_sim.SimIdentifier)
-                    info['imsi'] = str(current_sim.Imsi)
 
                     # Modem3gpp
                     modem3gpp = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp']
 
                     info['imei'] = str(modem3gpp.Imei)
+
+                    info['active'] = bool(current_sim.Active)
+                    info['signal'] = int(current_modem.SignalQuality[0])
+                    info['simId'] = str(current_sim.SimIdentifier)
+                    info['imsi'] = str(current_sim.Imsi)
+
+
                 else:
                     info['sim'] = bool(False)
-
-                info['manufacturer'] = str(current_modem.Manufacturer)
-                info['model'] = str(current_modem.Model)
 
                 return info
             except:
