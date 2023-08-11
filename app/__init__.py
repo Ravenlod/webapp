@@ -44,16 +44,16 @@ def create_app(config_class=Config):
 
 
     #Error Handlers
-    app.register_error_handler(500, 'errors/internal_error.html')
-    app.register_error_handler(404, 'errors/page_not_found.html')
+    #app.register_error_handler(500, 'errors/internal_error.html')
+    #app.register_error_handler(404, 'errors/page_not_found.html')
 
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        if not isinstance(e, HTTPException):
-            return render_template('errors/internal_error.html', e=e), 500
-    @app.errorhandler(404)
-    def page_not_found(e):
-            return render_template('errors/page_not_found.html'), 404
+    # @app.errorhandler(Exception)
+    # def handle_exception(e):
+    #     if not isinstance(e, HTTPException):
+    #         return render_template('errors/internal_error.html', e=e), 500
+    # @app.errorhandler(404)
+    # def page_not_found(e):
+    #         return render_template('errors/page_not_found.html'), 404
 
     @app.route('/health')
     def test_page():

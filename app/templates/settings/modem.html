@@ -23,8 +23,29 @@
         {% else %}
             <h1 align="center">Модем не найден!</h1>
         {% endif %}
+
     </div>
     </div>
+
+
+    <div class="col-md-6">
+    <div class="card">
+     <form method="POST">
+         <select name="modem_options" required="required">
+             <option value="">Выберите опцию</option>
+             <option value="ussd_option">USSD запрос</option>
+             <option value="apn_option">Настройка APN</option>
+         </select>
+        <label>Ussd запрос</label>
+        <input type="text" name="input_form">
+        <button type="submit">Отправить</button>
+    </form>
+            <p>{% if response %}{{response | safe }} {% endif %}</p>
+
+    </div>
+    </div>
+
+
 </div>
 
 {% endblock %}
