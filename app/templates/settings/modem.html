@@ -29,23 +29,43 @@
 
 
     <div class="col-md-6">
-    <div class="card">
-     <form method="POST">
-         <select name="modem_options" required="required">
-             <option value="">Выберите опцию</option>
-             <option value="ussd_option">USSD запрос</option>
-             <option value="apn_option">Настройка APN</option>
-         </select>
-        <label>Ussd запрос</label>
-        <input type="text" name="input_form">
-        <button type="submit">Отправить</button>
-    </form>
-            <p>{% if response %}{{response | safe }} {% endif %}</p>
+        <div class="card">
+            <form method="POST">
+            <div class="card-header">
+                 <select id="m_opt" name="modem_options" required="required">
+                     <option value="">Выберите опцию</option>
+                     <option value="ussd_option">USSD запрос</option>
+                     <option value="apn_option">Настройка APN</option>
+                 </select>
+            </div>
+            <div class="card-body">
+                <label>Введите запрос:</label>
+                <div class="row mt-3">
+                    <input class="form-control" type="text" id="input_value" name="input_form">
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <button class="btn btn-primary" type="submit">Отправить</button>
+                    </div>
+                    <div id="ussd_request_hidden_button" class="hidden col-md-6">
+                        <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
+                    </div>
 
+                </div>
+            </div>
+            </form>
+            <div class="card-body">
+                <p>{% if response %}{{response | safe }} {% endif %}</p>
+            </div>
+        </div>
     </div>
-    </div>
-
-
 </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/select_options_button_handler.js"></script>
 
 {% endblock %}
