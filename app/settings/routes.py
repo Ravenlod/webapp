@@ -1,14 +1,16 @@
 import subprocess
+import json
 from os import path, popen
 
 from flask_login import login_required
 from werkzeug.security import safe_join
+from pydbus import SystemBus
+from gi.repository import GLib
 
 from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
 from flask import render_template, flash, current_app, request, redirect, url_for, jsonify
-from pydbus import SystemBus
 
 from app.utils import sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_network_config, \
     SysConfig, sys_service_restart, db_size, db_clean, sys_auto_timezone, sys_reboot, sys_poweroff
@@ -226,10 +228,44 @@ def routes(bp):
     @bp.route("/modem", methods=['GET', 'POST'])
     @login_required
     def modem_settings():
-        show_modem = modem_show()
-        return render_template("/settings/modem.html", show_modem=show_modem, is_modem_settings = True)
+        """Основная функция, связанная с URL адресом /settings/modem.
+        Возвращает информацию о модеме, ответы в интерактивном поле запросов и булеан Истина"""
+        modem = ModemShow()
+        show_modem = modem.getter()
+        if request.method == 'POST':
 
-    def modem_show():
+            options = request.form['modem_options']
+            input_request = request.form['input_form']
+
+            if options == 'ussd_option':
+                if input_request == 'ussd_cancel':
+                    response = modem.modem_requests_handler('ussd_cancel')
+                else:
+                    response = modem.modem_requests_handler('ussd', input_request)
+            elif options == 'apn_option':
+                response = modem.modem_requests_handler('apn', input_request)
+            else:
+                response = 'Something went wrong!'
+        else:
+            response = False
+        return render_template("/settings/modem.html",
+                               show_modem=show_modem,
+                               response=response,
+                               is_modem_settings=True)
+
+    class ModemShow:
+        def modem_requests_handler(self, function_type, str_input=str()):
+            """Метод, позволяющий переадресовывать входные запросы в соответствующие обработчики"""
+            if function_type == 'ussd':
+                return self.modem_ussd_request(str_input)
+            elif function_type == 'apn':
+                return self.modem_apn_set(str_input)
+            elif function_type == 'ussd_cancel':
+                return self.modem_ussd_cancel()
+            else:
+                return 'Unknown Error'
+
+        @staticmethod
         def modem_current():
             bus = SystemBus()
             try:
@@ -249,6 +285,7 @@ def routes(bp):
                 return False
 
         # Detect all modem in system
+        @staticmethod
         def modem_system_scan():
             bus = SystemBus()
             try:
@@ -261,9 +298,10 @@ def routes(bp):
                 return False
 
         # Modem ussd request (Initiate USSD session)
-        def modem_ussd_request(ussd_code):
+        def modem_ussd_request(self, ussd_code):
+            """Метод, который позволяет посылать USSD запросы. Не может отменять текущую сессию запросов."""
             try:
-                obj_current_modem = modem_current()
+                obj_current_modem = self.modem_current()
                 # USSD session
                 ussd = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd']
                 ussd_request = str(ussd.Initiate(ussd_code))
@@ -272,10 +310,28 @@ def routes(bp):
                 print('Modem not found')
                 return False
 
-        def modem_info():
+        def modem_ussd_cancel(self):
+            obj_current_modem = self.modem_current()
+            # USSD session
+            ussd = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd']
+            ussd.Cancel()
+
+        def modem_apn_set(self, apn_input):
+            """ Метод, который позволяет настроить APN для текущего профиля"""
+            try:
+                obj_current_modem = self.modem_current()
+                apn_set = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.ProfileManager']
+                apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
+                response = apn_set.List()
+                return response
+
+            except:
+                return 'False'
+
+        def modem_info(self):
             # DBUS lib tutorial https://github.com/LEW21/pydbus/blob/master/doc/tutorial.rst
             try:
-                obj_current_modem = modem_current()
+                obj_current_modem = self.modem_current()
                 current_modem = obj_current_modem['org.freedesktop.ModemManager1.Modem']
 
                 # Values
@@ -311,5 +367,8 @@ def routes(bp):
                 print('Modem not found')
                 return False
 
-        show_modem = modem_info()
-        return show_modem
+        def getter(self):
+            """ Метод для безопасного возврата информации о модеме """
+            return self.modem_info()
+
+

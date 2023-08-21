@@ -9,6 +9,9 @@
     color: 007fbb;
     text-decoration: none;
 }
+.hidden {
+    display: none;
+}
 
 .disabled {
     color: gray;
