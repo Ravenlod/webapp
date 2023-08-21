@@ -308,9 +308,9 @@ def routes(bp):
             """ Метод, который позволяет настроить APN для текущего профиля"""
             #try:
             obj_current_modem = self.modem_current()
-
+            response = dict()
             apn_set = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.ProfileManager']
-            response = apn_set.Set(apn_input)
+            apn_set.Set((str(apn_input), str(response)))
             return response
             #except:
                # return 'False'
