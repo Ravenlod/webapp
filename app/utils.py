@@ -1,6 +1,6 @@
 import subprocess
 from os import popen, path, system
-from datetime import datetime
+# from datetime import datetime
 
 from flask import flash
 
@@ -8,7 +8,17 @@ ALLOWED_EXTENSIONS = {'conf'}
 
 
 class SysConfig:
-    netconfig = '/etc/systemd/network/20-wired.network'
+    netconfig = str()
+
+    def __init__(self, connection_type="wired"):
+        wired_netconfig = '/etc/systemd/network/20-wired.network'
+        wireless_netconfig = '/etc/systemd/network/30-modem.network'
+
+        if connection_type == "wired":
+            self.netconfig = wired_netconfig
+        elif connection_type == "wireless":
+            self.netconfig = wireless_netconfig
+        # TODO Не дописаны исключения
 
     def net_config_read(self, word):
         try:
@@ -33,9 +43,37 @@ class SysConfig:
         return net
 
 
-def sys_network_config(dhcp, ip, gw, dns):
+def sys_wireless_network_config(config_input):
+    """config_input( str(Name), str(Address), str(Gateway), tuple(DNS) )"""
+    config_path = '/etc/systemd/network/30-modem.network'
+    with open(config_path, 'w') as f:
+        row = ','.join(config_input[3])
+        line1 = '[Match]\n'
+        line2 = '\n'
+        line3 = f'Name={config_input[0][0]}\n'
+        line4 = '[Network]\n'
+        line5 = '\n'
+        line6 = f'Address={config_input[1]}\n'
+        line7 = f'Gateway={config_input[2]}\n'
+        line8 = f'DNS={row}\n'
+        f.writelines([
+            line1, line2, line3,
+            line4, line5, line6,
+            line7, line8,
+        ])
+        f.close()
+    '''
+        with open(config_path,"r") as f:
+        text = f.read()
+        f.close()
+    return text
+    '''
+
+
+def sys_wired_network_config(config_input):
+    """config_input(DHCP, Ip, Gateway, DNS)"""
     config_path = '/etc/systemd/network/20-wired.network'
-    dhcp_param = bool(dhcp)
+    dhcp_param = bool(config_input[0])
     if dhcp_param:
         with open(config_path, 'w') as f:
             line1 = "[Match]\n"
@@ -63,9 +101,9 @@ def sys_network_config(dhcp, ip, gw, dns):
             line2 = "Name=end0\n"
             line3 = "\n"
             line4 = "[Network]\n"
-            line5 = f"Address={ip}\n"
-            line6 = f"Gateway={gw}\n"
-            line7 = f"DNS={dns}\n"
+            line5 = f"Address={config_input[1]}\n"
+            line6 = f"Gateway={config_input[2]}\n"
+            line7 = f"DNS={config_input[3]}\n"
             f.writelines([
                 line1, line2, line3,
                 line4, line5, line6,
@@ -141,6 +179,20 @@ def sys_date():
         'date +"%Y-%m-%d %H:%M:%S (%Z)"'
     ).read()
     return date
+
+
+def sys_manage_ip_route(name: str, metric: int, change="add"):
+    """Добавление в таблицу маршрутизации устройства с данной метрикой"""
+    if change == 'add' or change == 'delete':
+        change = [f"sudo ip route {change} default dev {name} metric {metric}"]
+    else:
+        return "Unknown command"
+    try:
+        subprocess.check_output(change, universal_newlines=True, shell=True)
+
+    except subprocess.CalledProcessError:
+        return "Недостаточно системных прав!"
+        pass
 
 
 def sys_service_restart(service):

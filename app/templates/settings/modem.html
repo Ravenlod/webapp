@@ -36,6 +36,7 @@
                      <option value="">Выберите опцию</option>
                      <option value="ussd_option">USSD запрос</option>
                      <option value="apn_option">Настройка APN</option>
+                     <option value="activate_connection">Кнопка</option>
                  </select>
             </div>
             <div class="card-body">
@@ -57,6 +58,17 @@
             <div class="card-body">
                 <p>{% if response %}{{response | safe }} {% endif %}</p>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="card">
+        <div class="card-header">
+            Настройка соединения LTE модема
+        </div>
+        <div class="card-body">
+
         </div>
     </div>
 </div>
