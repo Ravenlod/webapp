@@ -4,31 +4,94 @@
 {% block content %}
 
 <div class="row md-6 d-flex justify-content-center">
-    <div class="col-md-6">
-    <div class="card">
-        <div class="card-header">
-            Текущая информация
+
+    <div class="col md-6 mt-3">
+        <div class="card">
+
+            <div class="card-header">
+                Настройка соединения LTE модема
+            </div>
+
+            <div class="card-body">
+
+                <form class="form-horizontal" action="/settings/init_connection_setup">
+                    <div class="form-group">
+                        <label>APN</label>
+                        <input placeholder="Введите APN" class="form-control" name="apn_input">
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="ipvX" value="ipv4v6" id="flexRadio1" checked>
+                            <label class="form-check-label" for="flexRadio1">
+                                IPv4v6
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="ipvX" value="ipv4" id="flexRadio2">
+                            <label class="form-check-label" for="flexRadio2">
+                                IPv4
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="ipvX" value="ipv6" id="flexRadio3">
+                            <label class="form-check-label" for="flexRadio3">
+                                IPv6
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label>User</label>
+                        <input placeholder="Оставьте поле пустым, если не знаете, что это"
+                               class="form-control" name="user_input">
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label>Password</label>
+                        <input placeholder="Оставьте поле пустым, если не знаете, что это"
+                               class="form-control" name="password_input">
+
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <button class="btn btn-primary" type="submit">Отправить</button>
+                    </div>
+                </form>
+
+            </div>
         </div>
-        {% if show_modem %}
-        <table class="table table-striped table-borderless text-center" style="margin: auto;">
-
-        {% for Key, Value in show_modem.items() %}
-            <tr>
-                <th scope = "row">{{ Key | safe }}: </th>
-                <td>{{ Value | safe }}</td>
-            </tr>
-        {% endfor %}
-
-        </table>
-        {% else %}
-            <h1 align="center">Модем не найден!</h1>
-        {% endif %}
-
-    </div>
     </div>
 
+    <div class="col-md-6 mt-3">
+        <div class="card">
+            <div class="card-header">
+                Текущая информация
+            </div>
+            {% if show_modem %}
+            <table class="table table-striped table-borderless text-center" style="margin: auto;">
 
-    <div class="col-md-6">
+            {% for Key, Value in show_modem.items() %}
+                <tr>
+                    <th scope = "row">{{ Key | safe }}: </th>
+                    <td>{{ Value | safe }}</td>
+                </tr>
+            {% endfor %}
+
+            </table>
+            {% else %}
+                <h1 align="center">Модем не найден!</h1>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+</div>
+
+<div class="row md-6 mt-3 d-flex justify-content-center">
+       <div class="col-md-6">
         <div class="card">
             <form method="POST">
             <div class="card-header">
@@ -60,24 +123,67 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="col-md-6">
-    <div class="card">
-        <div class="card-header">
-            Настройка соединения LTE модема
-        </div>
-        <div class="card-body">
+    <div class="col md-6">
+        <div class="card">
+            <div class="card-header">
+                Текущий статус соединения
+            </div>
+            <div class="card-body">
 
+                <div class="d-flex">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="switch_connection_status"
+                               id="flexSwitchCheckDefault">
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Switch connection status</label>
+                    </div>
+
+                    <div class="col md-6">
+                        <button type="submit" name="disable_btn">Выключить</button>
+                    </div>
+
+                    <div class="col md-6  justify-content-md-end">
+                        <button class="btn mt-0 me-0" id="copy_btn_1">
+                            <svg class="bi opacity-75 theme-icon" aria-hidden="true">
+                                <use id="copy_btn_svg_1" href="#clipboard"></use>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="container d-flex justify-content-center">
+                    <pre id="copy_text_field">
+<span>Name: {{ name_status | safe }} </span>
+<span>Address: {{ address_status | safe }} </span>
+<span>Gateway: {{ gateway_status | safe }} </span>
+<span>DNS: {{ dns_status | safe }} </span>
+                    </pre>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
 
+
+</div>
 
 {% endblock %}
 
 {% block scripts %}
 
 <script src="/static/js/select_options_button_handler.js"></script>
+<script>
+let copy_btn_click = document.querySelector('#copy_btn_1')
+let text_field = document.querySelector('#copy_text_field')
+let change_svg_btn = document.querySelector('#copy_btn_svg_1')
 
+copy_btn_click.addEventListener('click', () => {
+    let info = text_field.textContent;
+    change_svg_btn.href = "#check2";
+    navigator.clipboard.writeText(`${info}`);
+
+})
+
+</script>
 {% endblock %}

@@ -43,14 +43,15 @@ class SysConfig:
         return net
 
 
-def sys_wireless_network_config(config_input):
-    """config_input( str(Name), str(Address), str(Gateway), tuple(DNS) )"""
+def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):
+    """Считывает данные с входного кортежа, и записывает в конфигурационый файл для сервиса systemd-networkd"""
     config_path = '/etc/systemd/network/30-modem.network'
     with open(config_path, 'w') as f:
+        # TODO Доделать обработчик ошибок
         row = ','.join(config_input[3])
         line1 = '[Match]\n'
         line2 = '\n'
-        line3 = f'Name={config_input[0][0]}\n'
+        line3 = f'Name={config_input[0]}\n'
         line4 = '[Network]\n'
         line5 = '\n'
         line6 = f'Address={config_input[1]}\n'
@@ -68,6 +69,17 @@ def sys_wireless_network_config(config_input):
         f.close()
     return text
     '''
+
+
+def sys_wireless_config_clear():
+    config_path = '/etc/systemd/network/30-modem.network'
+    cmd = f'truncate -s 0 {config_path}'
+    try:
+        subprocess.check_output(cmd, universal_newlines=True, shell=True)
+
+    except subprocess.CalledProcessError:
+        flash("Недостаточно системных прав!")
+        pass
 
 
 def sys_wired_network_config(config_input):
@@ -191,7 +203,7 @@ def sys_manage_ip_route(name: str, metric: int, change="add"):
         subprocess.check_output(change, universal_newlines=True, shell=True)
 
     except subprocess.CalledProcessError:
-        return "Недостаточно системных прав!"
+        flash("Недостаточно системных прав!")
         pass
 
 
