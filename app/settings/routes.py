@@ -18,7 +18,6 @@ from app.utils import sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_
 
 
 def routes(bp):
-
     @bp.route("/", methods=['GET'])
     @login_required
     def index():
@@ -231,22 +230,20 @@ def routes(bp):
     @bp.route("/init_connection_setup", methods=['GET', 'POST'])
     @login_required
     def init_settings_form_handler():
-        apn_info = request.form.get("apn_input")
-        # ip_info = request.form.get("ipvX")
-        user_info = request.form.get("user_input")
-        password_info = request.form.get("password_input")
+        if request.method == 'POST':
+            apn_info = request.form['apn_input']
+            ip_info = request.form.get("ipvX")
+            user_info = request.form.get("user_input")
+            password_info = request.form.get("password_input")
+            conn_config_input = (apn_info, ip_info, user_info, password_info)
 
-        if user_info == None:
-            user_info = str()
-        if password_info == None:
-            password_info = str()
-        if apn_info == None:
-            apn_info = "internet"
-      #  if ip_info == None:
-       #     ip_info = 1 << 2
-        modem = ModemShow()
-        temp = modem.modem_add_connection((apn_info, user_info, password_info))
-        print(temp)
+            if conn_config_input == (None,) * 4:
+                conn_config_input = ('internet', '4', '', '')
+            modem = ModemShow()
+
+            temp = modem.modem_add_connection(conn_config_input)
+            print("Alright")
+            print(temp)
         return redirect(url_for('settings.modem_settings'))
 
     @bp.route("/modem", methods=['GET', 'POST'])
@@ -272,7 +269,6 @@ def routes(bp):
 
             if con_status:
                 modem.modem_delete_connection()
-
 
             if options == 'ussd_option':
                 if input_request == 'ussd_cancel':
@@ -302,7 +298,6 @@ def routes(bp):
         current_bearer = str()
         current_name = str()
 
-
         def modem_requests_handler(self, function_type, str_input=str()):
             """Метод, позволяющий переадресовывать входные запросы в соответствующие обработчики"""
             if function_type == 'ussd':
@@ -311,8 +306,8 @@ def routes(bp):
                 return self.modem_apn_set(str_input)
             elif function_type == 'ussd_cancel':
                 return self.modem_ussd_cancel()
-            #elif function_type == 'activate_connection':
-                #return self.modem_add_connection()
+            # elif function_type == 'activate_connection':
+            # return self.modem_add_connection()
             else:
                 return 'Unknown Error'
 
@@ -321,30 +316,31 @@ def routes(bp):
             nm = bus.get("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager")
             modem_path = self.modem_current_nm()
             nm.AddAndActivateConnection({'connection': {'id': GLib.Variant.new_string('modem'),
-                                                         'type': GLib.Variant.new_string('gsm')},
-                                            'gsm': {'apn': GLib.Variant.new_string('internet')}},
-                                            modem_path, '/')
+                                                        'type': GLib.Variant.new_string('gsm')},
+                                         'gsm': {'apn': GLib.Variant.new_string('internet')}},
+                                        modem_path, '/')
             # Detect all modem in system
 
-        def modem_add_connection(self, config_input: tuple[str, str, str]):
+        def modem_add_connection(self, config_input: tuple[str, int, str, str]):
             bus = SystemBus()
             obj_current_modem = self.modem_current()
 
-            ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Modem', 'Ports')
+            ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Modem',
+                                                                             'Ports')
             simple_connect = obj_current_modem['org.freedesktop.ModemManager1.Modem.Simple']
-            bearer_path = simple_connect.Connect({'apn': GLib.Variant.new_string("internet")})
-                                                 # 'ip-type': GLib.Variant.new_uint32(config_input[1]),
-                                                 # 'user': GLib.Variant.new_string(config_input[1]),
-                                                 #'password': GLib.Variant.new_string(config_input[2])})
+            bearer_path = simple_connect.Connect({'apn': GLib.Variant.new_string(config_input[0]),
+                                                  'ip-type': GLib.Variant.new_int32(int(config_input[1])),
+                                                  'user': GLib.Variant.new_string(config_input[2]),
+                                                  'password': GLib.Variant.new_string(config_input[3])})
             obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable('true')
             self.current_bearer = bus.get("org.freedesktop.ModemManager1", bearer_path)
-            ip_dict = self.current_bearer['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Bearer', 'Ip4Config')
+            ip_dict = self.current_bearer['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Bearer',
+                                                                                 'Ip4Config')
             self.current_name = [port[0] for port in ports if "wwp" in port[0]][0]
             # port[0] возвращает список из одного элемента
 
-
-
-            config_input = (self.current_name, ip_dict['address'], ip_dict['gateway'], (ip_dict['dns1'], ip_dict['dns2']))
+            config_input = (
+            self.current_name, ip_dict['address'], ip_dict['gateway'], (ip_dict['dns1'], ip_dict['dns2']))
             # TODO Потенциальная ошибка, если DNS будет один экземпляр
             sys_wireless_network_config(config_input)
             sys_service_restart('systemd-networkd')
@@ -366,6 +362,7 @@ def routes(bp):
 
             # obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable('false')
             return self.current_name
+
         @staticmethod
         def modem_current():
             bus = SystemBus()
@@ -384,6 +381,7 @@ def routes(bp):
                 return obj_current_modem
             except:
                 return False
+
         @staticmethod
         def modem_system_scan():
             bus = SystemBus()
@@ -434,7 +432,7 @@ def routes(bp):
             try:
                 obj_current_modem = self.modem_current()
                 apn_set = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.ProfileManager']
-                #apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
+                # apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
                 response = apn_set.List()
                 return response
 
@@ -485,5 +483,3 @@ def routes(bp):
         def getter(self):
             """ Метод для безопасного возврата информации о модеме """
             return self.modem_info()
-
-

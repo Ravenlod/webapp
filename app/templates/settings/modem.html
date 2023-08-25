@@ -14,28 +14,28 @@
 
             <div class="card-body">
 
-                <form class="form-horizontal" action="/settings/init_connection_setup">
+                <form class="form-horizontal" action="/settings/init_connection_setup" method="post">
                     <div class="form-group">
                         <label>APN</label>
-                        <input placeholder="Введите APN" class="form-control" name="apn_input">
+                        <input placeholder="Введите APN" class="form-control" type="text" name="apn_input">
                     </div>
 
                     <div class="form-group mt-3">
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="ipvX" value="ipv4v6" id="flexRadio1" checked>
+                            <input class="form-check-input" type="radio" name="ipvX" value="4" id="flexRadio1" checked>
                             <label class="form-check-label" for="flexRadio1">
                                 IPv4v6
                             </label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="ipvX" value="ipv4" id="flexRadio2">
+                            <input class="form-check-input" type="radio" name="ipvX" value="1" id="flexRadio2">
                             <label class="form-check-label" for="flexRadio2">
                                 IPv4
                             </label>
                         </div>
 
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="ipvX" value="ipv6" id="flexRadio3">
+                            <input class="form-check-input" type="radio" name="ipvX" value="2" id="flexRadio3">
                             <label class="form-check-label" for="flexRadio3">
                                 IPv6
                             </label>
@@ -131,18 +131,9 @@
             </div>
             <div class="card-body">
 
-                <div class="d-flex">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="switch_connection_status"
-                               id="flexSwitchCheckDefault">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Switch connection status</label>
-                    </div>
+                <div class="d-flex justify-content-md-end ">
 
-                    <div class="col md-6">
-                        <button type="submit" name="disable_btn">Выключить</button>
-                    </div>
-
-                    <div class="col md-6  justify-content-md-end">
+                    <div class="row ">
                         <button class="btn mt-0 me-0" id="copy_btn_1">
                             <svg class="bi opacity-75 theme-icon" aria-hidden="true">
                                 <use id="copy_btn_svg_1" href="#clipboard"></use>
@@ -173,17 +164,5 @@
 {% block scripts %}
 
 <script src="/static/js/select_options_button_handler.js"></script>
-<script>
-let copy_btn_click = document.querySelector('#copy_btn_1')
-let text_field = document.querySelector('#copy_text_field')
-let change_svg_btn = document.querySelector('#copy_btn_svg_1')
 
-copy_btn_click.addEventListener('click', () => {
-    let info = text_field.textContent;
-    change_svg_btn.href = "#check2";
-    navigator.clipboard.writeText(`${info}`);
-
-})
-
-</script>
 {% endblock %}
