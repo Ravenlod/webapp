@@ -1,56 +1,56 @@
- var select_options = document.getElementById("m_opt");
- var target_button = document.getElementById("ussd_request_hidden_button")
- var secondary_button = document.getElementById("cnl-btn")
- var input_value = document.getElementById("input_value")
-
-function ussdSessionCancel(event)
-{
-    input_value.value = "ussd_cancel";
-
-    alert("USSD session canceled");
-}
-
-secondary_button.addEventListener('click', ussdSessionCancel);
-function handleClick(event)
-{
-    var selected_option = select_options.value
-    if (selected_option === "ussd_option") {
-        target_button.classList.remove("hidden")
-    }
-    else {
-         target_button.classList.add("hidden")
-    }
-}
-select_options.addEventListener("click", handleClick);
-
+var select_options = document.getElementById("m_opt");
+var target_button = document.getElementById("ussd_request_hidden_button");
+var secondary_button = document.getElementById("cnl-btn");
+var input_value = document.getElementById("input_value");
 var con_switch = document.getElementById('connectionSwitch_1');
+
+secondary_button.addEventListener('click', () => {
+    input_value.value = "ussd_cancel";
+    alert("USSD session canceled");
+});
+
+
 con_switch.addEventListener('click', () => {
     var state = !con_switch.checked;
-    const data = {"data":state};
+    // const data = {state: state};
     fetch("/settings/switch", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(state)
+        body: JSON.stringify({"status": state})
     })
-    .then(responseData => console.log('Server response:', responseData))
-    .then(response => response.json())
+    //.then(responseData => console.log('Server response:', responseData))
+    .then(response => {if(!response.ok){
+                            throw new Error('Network response Error');}
+                       response.json(); })
 
     .catch(error => {
         console.error("Error:", error);
+
     });
 });
 
     //async functions
-let copy_btn_click = document.querySelector('#copy_btn_1')
-let text_field = document.querySelector('#copy_text_field')
-let change_svg_btn = document.querySelector('#copy_btn_svg_1')
+let copy_btn = document.getElementsByClassName('copy-btn');
+let copy_btn_click = document.querySelector('#copy_btn_1');
 
-copy_btn_click.addEventListener('click', () => {
+
+
+for(let i = 0; i < copy_btn.length; i ++)
+{
+    let text_field = document.querySelector('#copy_text_field_' + String(copy_btn[i].getAttribute('value')));
+    let change_svg_btn = document.querySelector('#copy_btn_svg_'+ String(copy_btn[i].getAttribute('value')));
+
+    copy_btn[i].addEventListener('click', () => {
+    // + String(copy_btn_click.getAttribute('value')));
+   //+ String(copy_btn_click.getAttribute('value')));
     let info = text_field.textContent;
-    change_svg_btn.href = "#check2"; //Don't work
     navigator.clipboard.writeText(`${info}`);
+    change_svg_btn.setAttribute("href", "#check2");
+    setTimeout(() =>{change_svg_btn.setAttribute("href", "#clipboard")}, 5000)
 
 })
+}
+
 

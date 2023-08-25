@@ -248,9 +248,8 @@ def routes(bp):
     @login_required
     def connection_switch_handler():
         modem = ModemControl()
-        state = request.json
-        print(state)
-        # state = con_status.get
+        con_status = request.json
+        state = con_status.get('status')
 
         if state:
             modem.modem_delete_connection()
@@ -280,24 +279,16 @@ def routes(bp):
         dns_status = network.net_config_read('DNS')
 
         if request.method == 'POST':
-            options = request.form.get('modem_options')
             input_request = request.form.get('input_form')
 
-            if options == 'ussd_option':
-                if input_request == 'ussd_cancel':
-                    response = modem.modem_ussd_cancel()
-                else:
-                    response = modem.modem_ussd_request(input_request)
-            elif options == 'apn_option':
-                response = modem.modem_apn_set(input_request)
-            elif options == 'delete_connection':
-                response = modem.modem_delete_connection()
+            if input_request == 'ussd_cancel':
+                response = modem.modem_ussd_cancel()
             else:
-                response = 'Something went wrong!'
+                response = modem.modem_ussd_request(input_request)
         else:
             response = False
         return render_template("/settings/modem.html",
-                               modem_status=modem_status,
+                               modem_status=modem_code_status,
                                show_modem=show_modem,
                                response=response,
                                is_modem_settings=True,
