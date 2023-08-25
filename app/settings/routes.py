@@ -1,5 +1,6 @@
 import subprocess
 import json
+import secrets
 from os import path, popen
 
 from flask_login import login_required
@@ -10,12 +11,11 @@ from gi.repository import GLib
 from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
-from flask import render_template, flash, current_app, request, redirect, url_for, jsonify
+from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session
 
 from app.utils import sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
     SysConfig, sys_service_restart, db_size, db_clean, sys_auto_timezone, sys_reboot, sys_poweroff, \
     sys_wireless_network_config, sys_manage_ip_route, sys_wireless_config_clear
-
 
 def routes(bp):
     @bp.route("/", methods=['GET'])
@@ -227,7 +227,7 @@ def routes(bp):
             'settings/firmware.html'
         )
 
-    @bp.route("/init_connection_setup", methods=['GET', 'POST'])
+    @bp.route("/init_connection_setup", methods=['POST'])
     @login_required
     def init_settings_form_handler():
         if request.method == 'POST':
@@ -238,12 +238,24 @@ def routes(bp):
             conn_config_input = (apn_info, ip_info, user_info, password_info)
 
             if conn_config_input == (None,) * 4:
-                conn_config_input = ('internet', '4', '', '')
-            modem = ModemShow()
+                conn_config_input = ('internet', 4, '', '')
+            modem = ModemControl()
 
-            temp = modem.modem_add_connection(conn_config_input)
-            print("Alright")
-            print(temp)
+            modem.modem_add_connection(conn_config_input)
+        return redirect(url_for('settings.modem_settings'))
+
+    @bp.route("/switch", methods=['POST'])
+    @login_required
+    def connection_switch_handler():
+        modem = ModemControl()
+        state = request.json
+        print(state)
+        # state = con_status.get
+
+        if state:
+            modem.modem_delete_connection()
+        else:
+            modem.modem_add_connection(('internet', 4, '', ''))
         return redirect(url_for('settings.modem_settings'))
 
     @bp.route("/modem", methods=['GET', 'POST'])
@@ -252,9 +264,14 @@ def routes(bp):
         """Основная функция, связанная с URL адресом /settings/modem.
         Возвращает информацию о модеме, ответы в интерактивном поле запросов и булеан Истина. Также
         возвращает информацию о подключении."""
-        modem = ModemShow()
+        modem = ModemControl()
         show_modem = modem.getter()
         nw_form = NetworkForm()
+        modem_code_status = modem.modem_check_state()
+        if modem_code_status == 11:
+            modem_status = True
+        else:
+            modem_status = False
         # Потенциально может быть проблема с получением поля имени Name
         network = SysConfig('wireless')
         name_status = network.net_config_read('Name')
@@ -263,27 +280,24 @@ def routes(bp):
         dns_status = network.net_config_read('DNS')
 
         if request.method == 'POST':
-            options = request.form['modem_options']
-            input_request = request.form['input_form']
-            con_status = request.form.get("disable_btn")
-
-            if con_status:
-                modem.modem_delete_connection()
+            options = request.form.get('modem_options')
+            input_request = request.form.get('input_form')
 
             if options == 'ussd_option':
                 if input_request == 'ussd_cancel':
-                    response = modem.modem_requests_handler('ussd_cancel')
+                    response = modem.modem_ussd_cancel()
                 else:
-                    response = modem.modem_requests_handler('ussd', input_request)
+                    response = modem.modem_ussd_request(input_request)
             elif options == 'apn_option':
-                response = modem.modem_requests_handler('apn', input_request)
-            elif options == 'activate_connection':
-                response = modem.modem_delete_connection()  # modem.modem_requests_handler('activate_connection')
+                response = modem.modem_apn_set(input_request)
+            elif options == 'delete_connection':
+                response = modem.modem_delete_connection()
             else:
                 response = 'Something went wrong!'
         else:
             response = False
         return render_template("/settings/modem.html",
+                               modem_status=modem_status,
                                show_modem=show_modem,
                                response=response,
                                is_modem_settings=True,
@@ -293,23 +307,15 @@ def routes(bp):
                                gateway_status=gw_status,
                                dns_status=dns_status)
 
-    class ModemShow:
+    class ModemControl:
 
         current_bearer = str()
         current_name = str()
 
-        def modem_requests_handler(self, function_type, str_input=str()):
-            """Метод, позволяющий переадресовывать входные запросы в соответствующие обработчики"""
-            if function_type == 'ussd':
-                return self.modem_ussd_request(str_input)
-            elif function_type == 'apn':
-                return self.modem_apn_set(str_input)
-            elif function_type == 'ussd_cancel':
-                return self.modem_ussd_cancel()
-            # elif function_type == 'activate_connection':
-            # return self.modem_add_connection()
-            else:
-                return 'Unknown Error'
+        def modem_check_state(self):
+            obj_current_modem = self.modem_current()
+            modem_state = obj_current_modem['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Modem', 'State')
+            return modem_state
 
         def modem_add_connection_nm(self):
             bus = SystemBus()
@@ -422,11 +428,14 @@ def routes(bp):
                 return False
 
         def modem_ussd_cancel(self):
-            obj_current_modem = self.modem_current()
-            # USSD session
-            ussd = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd']
-            ussd.Cancel()
-
+            try:
+                obj_current_modem = self.modem_current()
+                # USSD session
+                ussd = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd']
+                ussd.Cancel()
+                return 'OK'
+            except:
+                return 'Unknown Error'
         def modem_apn_set(self, apn_input):
             """ Метод, который позволяет настроить APN для текущего профиля"""
             try:

@@ -3,25 +3,44 @@
  var secondary_button = document.getElementById("cnl-btn")
  var input_value = document.getElementById("input_value")
 
-    function ussdSessionCancel(event)
-    {
-        input_value.value = "ussd_cancel";
+function ussdSessionCancel(event)
+{
+    input_value.value = "ussd_cancel";
 
-        alert("USSD session canceled");
-    }
+    alert("USSD session canceled");
+}
 
-    secondary_button.addEventListener('click', ussdSessionCancel);
-    function handleClick(event)
-    {
-        var selected_option = select_options.value
-        if (selected_option === "ussd_option") {
-            target_button.classList.remove("hidden")
-        }
-        else {
-             target_button.classList.add("hidden")
-        }
+secondary_button.addEventListener('click', ussdSessionCancel);
+function handleClick(event)
+{
+    var selected_option = select_options.value
+    if (selected_option === "ussd_option") {
+        target_button.classList.remove("hidden")
     }
-    select_options.addEventListener("click", handleClick);
+    else {
+         target_button.classList.add("hidden")
+    }
+}
+select_options.addEventListener("click", handleClick);
+
+var con_switch = document.getElementById('connectionSwitch_1');
+con_switch.addEventListener('click', () => {
+    var state = !con_switch.checked;
+    const data = {"data":state};
+    fetch("/settings/switch", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(state)
+    })
+    .then(responseData => console.log('Server response:', responseData))
+    .then(response => response.json())
+
+    .catch(error => {
+        console.error("Error:", error);
+    });
+});
 
     //async functions
 let copy_btn_click = document.querySelector('#copy_btn_1')
@@ -34,3 +53,4 @@ copy_btn_click.addEventListener('click', () => {
     navigator.clipboard.writeText(`${info}`);
 
 })
+

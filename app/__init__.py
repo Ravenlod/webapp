@@ -18,7 +18,6 @@ def create_app(config_class=Config):
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
-
     from .models.user import User
 
     @login_manager.user_loader
