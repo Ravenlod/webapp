@@ -104,18 +104,23 @@
                     <div class="col-md-6">
                         <button class="btn btn-primary" type="submit">Отправить</button>
                     </div>
+                    {% if ussd_status == 3 %}
                     <div id="ussd_request_hidden_button" class="col-md-6">
                         <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
                     </div>
-
+                    {% endif %}
                 </div>
             </div>
             </form>
             <div class="card-body">
 
-                <div class="d-flex justify-content-md-end ">
+                <div class="row mt-2">
 
-                    <div class="row ">
+                    <div class="col-md-6">
+                        <p>Connection Status: {{ ussd_status | safe }}</p>
+                    </div>
+
+                    <div class="col-md-6 justify-content-end">
                         <button class="btn mt-0 me-0 copy-btn" id="copy_btn_2" value="2">
                             <svg class="bi opacity-75 theme-icon" aria-hidden="true">
                                 <use id="copy_btn_svg_2" href="#clipboard"></use>

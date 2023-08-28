@@ -7,6 +7,7 @@ from app.extensions import db
 
 from werkzeug.exceptions import HTTPException
 
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)

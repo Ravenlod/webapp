@@ -1,6 +1,6 @@
 import subprocess
 import json
-import secrets
+import time
 from os import path, popen
 
 from flask_login import login_required
@@ -16,6 +16,7 @@ from flask import render_template, flash, current_app, request, redirect, url_fo
 from app.utils import sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
     SysConfig, sys_service_restart, db_size, db_clean, sys_auto_timezone, sys_reboot, sys_poweroff, \
     sys_wireless_network_config, sys_manage_ip_route, sys_wireless_config_clear
+
 
 def routes(bp):
     @bp.route("/", methods=['GET'])
@@ -246,7 +247,7 @@ def routes(bp):
 
     @bp.route("/switch", methods=['POST'])
     @login_required
-    def connection_switch_handler():
+    def modem_connection_switch_handler():
         modem = ModemControl()
         con_status = request.json
         state = con_status.get('status')
@@ -255,6 +256,12 @@ def routes(bp):
             modem.modem_delete_connection()
         else:
             modem.modem_add_connection(('internet', 4, '', ''))
+        return redirect(url_for('settings.modem_settings'))
+
+    @bp.route("/ussd_request", methods=['POST'])
+    @login_required
+    def modem_ussd_handler():
+        modem = ModemControl()
         return redirect(url_for('settings.modem_settings'))
 
     @bp.route("/modem", methods=['GET', 'POST'])
@@ -267,10 +274,7 @@ def routes(bp):
         show_modem = modem.getter()
         nw_form = NetworkForm()
         modem_code_status = modem.modem_check_state()
-        if modem_code_status == 11:
-            modem_status = True
-        else:
-            modem_status = False
+
         # Потенциально может быть проблема с получением поля имени Name
         network = SysConfig('wireless')
         name_status = network.net_config_read('Name')
@@ -278,13 +282,21 @@ def routes(bp):
         gw_status = network.net_config_read('Gateway')
         dns_status = network.net_config_read('DNS')
 
+        ussd_status = modem.modem_ussd_status()
+
         if request.method == 'POST':
             input_request = request.form.get('input_form')
 
             if input_request == 'ussd_cancel':
                 response = modem.modem_ussd_cancel()
-            else:
+            elif modem.modem_ussd_status() == 1:
                 response = modem.modem_ussd_request(input_request)
+            elif modem.modem_ussd_status() == 3:
+                modem.modem_ussd_response(input_request)
+                time.sleep(5)
+                # Костыль, но работает. При желании можно изменить время задержки
+                response = modem.modem_ussd_network_request()
+
         else:
             response = False
         return render_template("/settings/modem.html",
@@ -296,7 +308,8 @@ def routes(bp):
                                name_status=name_status,
                                address_status=ip_status,
                                gateway_status=gw_status,
-                               dns_status=dns_status)
+                               dns_status=dns_status,
+                               ussd_status=ussd_status)
 
     class ModemControl:
 
@@ -304,10 +317,13 @@ def routes(bp):
         current_name = str()
 
         def modem_check_state(self):
-            obj_current_modem = self.modem_current()
-            modem_state = obj_current_modem['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Modem', 'State')
-            return modem_state
-
+            try:
+                obj_current_modem = self.modem_current()
+                modem_state = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
+                    'org.freedesktop.ModemManager1.Modem', 'State')
+                return modem_state
+            except:
+                return 'Modem is missing'
         def modem_add_connection_nm(self):
             bus = SystemBus()
             nm = bus.get("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager")
@@ -333,11 +349,11 @@ def routes(bp):
             self.current_bearer = bus.get("org.freedesktop.ModemManager1", bearer_path)
             ip_dict = self.current_bearer['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Bearer',
                                                                                  'Ip4Config')
-            self.current_name = [port[0] for port in ports if "wwp" in port[0]][0]
+            self.current_name = [port[0] for port in ports if "ww" in port[0]][0]
             # port[0] возвращает список из одного элемента
 
-            config_input = (
-            self.current_name, ip_dict['address'], ip_dict['gateway'], (ip_dict['dns1'], ip_dict['dns2']))
+            config_input = (self.current_name, ip_dict['address'], ip_dict['gateway'],
+                            (ip_dict['dns1'], ip_dict['dns2']))
             # TODO Потенциальная ошибка, если DNS будет один экземпляр
             sys_wireless_network_config(config_input)
             sys_service_restart('systemd-networkd')
@@ -405,7 +421,6 @@ def routes(bp):
             except:
                 return False
 
-        # Modem ussd request (Initiate USSD session)
         def modem_ussd_request(self, ussd_code):
             """Метод, который позволяет посылать USSD запросы. Не может отменять текущую сессию запросов."""
             try:
@@ -418,6 +433,35 @@ def routes(bp):
                 print('Modem not found')
                 return False
 
+        def modem_ussd_status(self):
+            """Метод, возвращающий код состояния сессии USSD. MM_MODEM_3GPP_USSD_SESSION_STATE_UNKNOWN = 0
+ - Unknown state;
+MM_MODEM_3GPP_USSD_SESSION_STATE_IDLE = 1
+ - No active session;
+MM_MODEM_3GPP_USSD_SESSION_STATE_ACTIVE = 2
+ - A session is active and the mobile is waiting for a response;
+MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
+ - The network is waiting for the client's response."""
+            try:
+                obj_current_modem = self.modem_current()
+                ussd_status = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
+                    'org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd', 'State')
+                return ussd_status
+            except:
+                return False
+
+        def modem_ussd_response(self, ussd_code):
+            obj_current_modem = self.modem_current()
+            ussd = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd']
+            ussd.Respond(ussd_code)
+
+        def modem_ussd_network_request(self):
+            obj_current_modem = self.modem_current()
+            ussd_response = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
+                'org.freedesktop.ModemManager1.Modem.Modem3gpp.Ussd',
+                'NetworkRequest')
+            return ussd_response
+
         def modem_ussd_cancel(self):
             try:
                 obj_current_modem = self.modem_current()
@@ -427,12 +471,13 @@ def routes(bp):
                 return 'OK'
             except:
                 return 'Unknown Error'
+
         def modem_apn_set(self, apn_input):
             """ Метод, который позволяет настроить APN для текущего профиля"""
             try:
                 obj_current_modem = self.modem_current()
                 apn_set = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.ProfileManager']
-                # apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
+                apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
                 response = apn_set.List()
                 return response
 
