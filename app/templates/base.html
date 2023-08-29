@@ -196,7 +196,7 @@
       <!--    <nav class="navbar sticky-top navbar-expand-md" style="background-color: #e3f2fd;">-->
       <div class="container-md">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
-          <img src="/static/logo.svg" alt="" width="182" height="40" class="d-inline-block align-text-top">
+          <img src="/static/logo.png" alt="" width="182" height="40" class="d-inline-block align-text-top">
         </a>
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -263,9 +263,10 @@
                 <li>
                   <hr class="dropdown-divider">
                 </li>
-
+                {% if modem_status %}
                 <li>
-                    <a class="{% if is_modem_settings %}disabled{% endif %} dropdown-item" href="{{ url_for('settings.modem_settings') }}">
+                    <a class="dropdown-item"
+                       href="{{ url_for('settings.modem_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
                     LTE-модем
                     </a>
@@ -273,7 +274,7 @@
                 <li>
                   <hr class="dropdown-divider">
                 </li>
-
+                {% endif %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('settings.lora_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-wifi"></use></svg>
