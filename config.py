@@ -21,4 +21,5 @@ class Config:
     # TODO: В будущем парсить версии из файла swupdate
     SW_VERSION = "v.0.0.2-beta13"
     HW_VERSION = "rev3.3-FS-C1"
+    IsModemAvailable = False
 # print(basedir)

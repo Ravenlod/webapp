@@ -83,10 +83,10 @@
                     <div class="form-group mt-3">
                         <button class="btn btn-primary" type="submit">Отправить</button>
                     </div>
-
+                    <!--
                     <div class="form-group mt-3">
-                        {{ form['current_bearer'] | safe }}
                     </div>
+                    -->
                 </form>
 
             </div>
@@ -95,14 +95,14 @@
 
     <div class="col md-6 mt-3">
         <div class="card">
-            <form method="POST">
+            <form method="POST" action="{{ url_for('settings.modem_ussd_handler') }}">
             <div class="card-header">
                  USSD Запрос
             </div>
             <div class="card-body">
                 <label>Введите запрос:</label>
                 <div class="form-group mt-3">
-                    <input class="form-control" type="text" id="input_value" name="input_form">
+                    <input class="form-control" type="text" id="input_value" name="input_form" required>
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-6">
@@ -110,7 +110,8 @@
                     </div>
 
                     <div id="ussd_request_hidden_button"
-                         class= "col-md-6 {% if not form['ussd_status'] == 3 %} hidden {% endif %}">
+                         class= "col-md-6 {% if not (form['ussd_status'] == 3 or form['ussd_status'] == 2) %}
+                         hidden {% endif %}">
                         <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
                     </div>
 

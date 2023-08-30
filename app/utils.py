@@ -204,11 +204,11 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
             obj_current_modem = self.modem_current()
             apn_set = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.ProfileManager']
             # apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
-            response = apn_set.List()['apn']
+            response = apn_set.List()[0]['apn']
             return response
 
-        except:
-            return 'False'
+        except Exception as e:
+            return e
 
     def modem_info(self):
         # DBUS lib tutorial https://github.com/LEW21/pydbus/blob/master/doc/tutorial.rst

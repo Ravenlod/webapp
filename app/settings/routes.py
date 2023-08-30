@@ -12,7 +12,8 @@ from app.forms.sensors import LoraConfigForm
 from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session
 
 from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
-                       SysConfig, sys_service_restart, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot, sys_poweroff, \
+                       SysConfig, sys_service_restart, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
+                       sys_poweroff, \
                        ModemControl)
 
 
@@ -237,21 +238,20 @@ def routes(bp):
     @bp.route("/init_connection_setup", methods=['POST'])
     @login_required
     def init_settings_form_handler():
-        if request.method == 'POST':
-            apn_info = request.form['apn_input']
-            ip_info = int(request.form.get("ipvX"))
-            user_info = request.form.get("user_input")
-            password_info = request.form.get("password_input")
+        apn_info = request.form['apn_input']
+        ip_info = int(request.form.get("ipvX"))
+        user_info = request.form.get("user_input")
+        password_info = request.form.get("password_input")
 
-            conn_config_input = (apn_info, ip_info, user_info, password_info)
-            if conn_config_input == (None, ip_info, None, None) or conn_config_input[0] == '':
-                conn_config_input = ('internet', ip_info, '', '')
+        conn_config_input = (apn_info, ip_info, user_info, password_info)
+        if conn_config_input == (None, ip_info, None, None) or conn_config_input[0] == '':
+            conn_config_input = ('internet', ip_info, '', '')
 
-            session['modem_connection_config'] = conn_config_input
+        session['modem_connection_config'] = conn_config_input
 
-            modem = ModemControl()
-            connection_status = modem.modem_add_connection(conn_config_input)
-            session['current_bearer'] = connection_status
+        modem = ModemControl()
+        connection_status = modem.modem_add_connection(conn_config_input)
+        session['current_bearer'] = connection_status
 
         return redirect(url_for('settings.modem_settings'))
 
@@ -271,13 +271,24 @@ def routes(bp):
             session['current_bearer'] = connection_status
         return redirect(url_for('settings.modem_settings'))
 
-    '''
     @bp.route("/ussd_request", methods=['POST'])
     @login_required
     def modem_ussd_handler():
         modem = ModemControl()
+        input_request = request.form.get('input_form')
+        response = False
+
+        if input_request == 'ussd_cancel':
+            response = modem.modem_ussd_cancel()
+        elif modem.modem_ussd_status() == 1:
+            response = modem.modem_ussd_request(input_request)
+        elif modem.modem_ussd_status() == 3:
+            modem.modem_ussd_response(input_request)
+            time.sleep(5)
+            # Костыль, но работает. При желании можно изменить время задержки
+            response = modem.modem_ussd_network_request()
+        session['ussd_response'] = response
         return redirect(url_for('settings.modem_settings'))
-    '''
 
     @bp.route("/modem", methods=['GET', 'POST'])
     @login_required
@@ -298,7 +309,6 @@ def routes(bp):
         dns_status = network.net_config_read('DNS')
 
         ussd_status = modem.modem_ussd_status()
-        current_bearer = session.get('current_bearer', str())
 
         (modem_current_apn, modem_current_ipv,
          modem_current_user, modem_current_pass) = session.get('modem_connection_config',
@@ -320,27 +330,20 @@ def routes(bp):
             modem_current_apn = '[Default]'
         '''
 
-        response = False
-        if request.method == 'POST':
+        current_bearer = str()
+        if 'current_bearer' in session:
+            current_bearer = session.get('current_bearer', 'Unknown Error')
+            session.pop('current_bearer')
 
-            input_request = request.form.get('input_form')
-
-            if input_request == 'ussd_cancel':
-                response = modem.modem_ussd_cancel()
-            elif modem.modem_ussd_status() == 1:
-                response = modem.modem_ussd_request(input_request)
-            elif modem.modem_ussd_status() == 3:
-                modem.modem_ussd_response(input_request)
-                time.sleep(5)
-                # Костыль, но работает. При желании можно изменить время задержки
-                response = modem.modem_ussd_network_request()
-            redirect(url_for('settings.modem_settings'))
+        response = str()
+        if 'ussd_response' in session:
+            response = session.get('ussd_response', 'Unknown Error')
+            session.pop('ussd_response')
 
         output_form = {'modem_status': modem_code_status,
                        'show_modem': show_modem,
                        'response': response,
                        'nw_form': nw_form,
-                       'is_modem_settings': True,
                        'name_status': name_status,
                        'address_status': ip_status,
                        'gateway_status': gw_status,
