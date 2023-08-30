@@ -85,7 +85,7 @@
                     </div>
 
                     <div class="form-group mt-3">
-                        {{ form['connection_status'] | safe }}
+                        {{ form['current_bearer'] | safe }}
                     </div>
                 </form>
 
@@ -108,11 +108,12 @@
                     <div class="col-md-6">
                         <button class="btn btn-primary" type="submit">Отправить</button>
                     </div>
-                    {% if ussd_status == 3 %}
-                    <div id="ussd_request_hidden_button" class="col-md-6">
+
+                    <div id="ussd_request_hidden_button"
+                         class= "col-md-6 {% if not form['ussd_status'] == 3 %} hidden {% endif %}">
                         <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
                     </div>
-                    {% endif %}
+
                 </div>
             </div>
             </form>
@@ -203,6 +204,7 @@
 <span>State: {{ form['modem_status'] | safe }} </span>
 <span>Name: {{ form['name_status'] | safe }} </span>
 <span>APN: {{ form['modem_current_apn'] | safe }} </span>
+<span>IPv code: {{ form['modem_current_ipv'] | safe }} </span>
 <span>User: {{ form['modem_current_user'] | safe }} </span>
 <span>Password: {{ form['modem_current_password'] | safe }} </span>
 <span>Address: {{ form['address_status'] | safe }} </span>

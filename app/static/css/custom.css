@@ -13,8 +13,11 @@
     display: none;
 }
 
+
+
+
 .disabled {
-    color: gray;
+    color: rgb(128, 128, 128);
     pointer-events: none;
 }
 

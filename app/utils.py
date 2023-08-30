@@ -33,6 +33,8 @@ class ModemControl:
         # Detect all modem in system
 
     def modem_add_connection(self, config_input: tuple[str, int, str, str]):
+        """Пытается подключить модем, в случае успеха возвращает путь на текущий носитель,
+        или код ошибки при обработки исключения"""
         try:
             bus = SystemBus()
             obj_current_modem = self.modem_current()
@@ -196,13 +198,13 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
         except:
             return 'Unknown Error'
 
-    def modem_apn_set(self, apn_input):
+    def modem_get_init_apn(self):
         """ Метод, который позволяет настроить APN для текущего профиля"""
         try:
             obj_current_modem = self.modem_current()
             apn_set = obj_current_modem['org.freedesktop.ModemManager1.Modem.Modem3gpp.ProfileManager']
-            apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
-            response = apn_set.List()
+            # apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
+            response = apn_set.List()['apn']
             return response
 
         except:
@@ -386,6 +388,8 @@ def sys_auto_timezone():
 def sys_reboot():
     system('systemctl reboot -i')
 
+def sys_soft_reset():
+    system('fw_setenv -f /etc/u-boot-default-env resetroot yes')
 
 def sys_poweroff():
     system('systemctl poweroff -i')
