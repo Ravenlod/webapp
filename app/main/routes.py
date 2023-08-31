@@ -6,10 +6,18 @@ from flask_login import login_required, current_user
 from flask import render_template, current_app, redirect, url_for
 from werkzeug.security import safe_join
 
+import app
+from app.utils import ModemControl
+from config import Config
 
 def routes(bp):
     @bp.route("/", methods=['GET'])
     def index():
+        modem = ModemControl()
+
+        modem_status = modem.modem_system_scan()
+        Config.IsModemAvailable = modem_status
+
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         else:

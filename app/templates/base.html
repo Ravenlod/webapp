@@ -190,13 +190,16 @@
         <path d="M2.974 2.342a.5.5 0 1 0-.948.316L3.806 8H1.5A1.5 1.5 0 0 0 0 9.5v2A1.5 1.5 0 0 0 1.5 13H2a.5.5 0 0 0 .5.5h2A.5.5 0 0 0 5 13h6a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5h.5a1.5 1.5 0 0 0 1.5-1.5v-2A1.5 1.5 0 0 0 14.5 8h-2.306l1.78-5.342a.5.5 0 1 0-.948-.316L11.14 8H4.86L2.974 2.342ZM14.5 9a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h13Z"/>
         <path d="M8.5 5.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/>
       </symbol>
+      <symbol id="bi-recycle" viewBox="0 0 16 16">
+        <path d="M9.302 1.256a1.5 1.5 0 0 0-2.604 0l-1.704 2.98a.5.5 0 0 0 .869.497l1.703-2.981a.5.5 0 0 1 .868 0l2.54 4.444-1.256-.337a.5.5 0 1 0-.26.966l2.415.647a.5.5 0 0 0 .613-.353l.647-2.415a.5.5 0 1 0-.966-.259l-.333 1.242-2.532-4.431zM2.973 7.773l-1.255.337a.5.5 0 1 1-.26-.966l2.416-.647a.5.5 0 0 1 .612.353l.647 2.415a.5.5 0 0 1-.966.259l-.333-1.242-2.545 4.454a.5.5 0 0 0 .434.748H5a.5.5 0 0 1 0 1H1.723A1.5 1.5 0 0 1 .421 12.24l2.552-4.467zm10.89 1.463a.5.5 0 1 0-.868.496l1.716 3.004a.5.5 0 0 1-.434.748h-5.57l.647-.646a.5.5 0 1 0-.708-.707l-1.5 1.5a.498.498 0 0 0 0 .707l1.5 1.5a.5.5 0 1 0 .708-.707l-.647-.647h5.57a1.5 1.5 0 0 0 1.302-2.244l-1.716-3.004z"/>
+      </symbol>
     </svg>
 
-    <nav class="navbar border-bottom sticky-top navbar-expand-md">
+    <nav class="navbar border-bottom sticky-top navbar-expand-lg">
       <!--    <nav class="navbar sticky-top navbar-expand-md" style="background-color: #e3f2fd;">-->
       <div class="container-md">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
-          <img src="/static/logo.svg" alt="" width="182" height="40" class="d-inline-block align-text-top">
+          <img src="/static/logo.png" alt="" width="182" height="40" class="d-inline-block align-text-top">
         </a>
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -265,7 +268,8 @@
                 </li>
 
                 <li>
-                    <a class="{% if is_modem_settings %}disabled{% endif %} dropdown-item" href="{{ url_for('settings.modem_settings') }}">
+                    <a class="dropdown-item"
+                       href="{{ url_for('settings.modem_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
                     LTE-модем
                     </a>

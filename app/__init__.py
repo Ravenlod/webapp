@@ -4,21 +4,22 @@ from flask_login import LoginManager
 
 from config import Config
 from app.extensions import db
-
+from app.utils import ModemControl
 from werkzeug.exceptions import HTTPException
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.url_map.strict_slashes = False
-
+    modem = ModemControl()
+    app.config['IsModemAvailable'] = modem.modem_system_scan()
     # Initialize Flask extensions here
     db.init_app(app)
     migrate = Migrate(app, db)
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
-
     from .models.user import User
 
     @login_manager.user_loader

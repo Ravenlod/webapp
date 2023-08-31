@@ -97,6 +97,55 @@
             </div>
           </div>
       </div>
+
+      <div class="card-footer">
+           <div class="d-grid gap-2 d-md-flex justify-content-center">
+            <!-- Button trigger modal -->
+            <button type="submit" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#reset">
+                <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-recycle"></use></svg>Сброс данных
+            </button>
+            <!-- modal -->
+            <div class="modal fade" id="reset" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                 aria-labelledby="staticReset" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="staticReset">Сброс данных</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p> Сбросить все данные и перезагрузить устройство ?</p>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                              data-bs-target="#reset_confirmation">Да</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal fade" id="reset_confirmation" data-bs-backdrop="static"
+                 data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticResetConfirmation" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="staticResetConfirmation">Сброс данных</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p> Подтвердите еще раз, что желаете удалить все данные:</p>
+                  </div>
+                  <div class="modal-footer">
+                      <a class="float-end" href="{{ url_for('settings.index', soft_reset='y') }}">
+                        <button type="button" class="btn btn-danger">Да</button>
+                      </a>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+      </div>
   </ul>
 </div>
 <br>
@@ -178,4 +227,5 @@
   </ul>
 </div>
 <br>
+
 {% endblock %}

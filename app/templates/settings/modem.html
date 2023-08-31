@@ -1,53 +1,117 @@
 {% extends "base.html" %}
-{% block title %}Данные с модема{% endblock %}
-{% block title_page %}Данные с модема{% endblock %}
+{% block title %}Настройка LTE модема{% endblock %}
+{% block title_page %}Настройка подключения модема{% endblock %}
 {% block content %}
 
-<div class="row md-6 d-flex justify-content-center">
-    <div class="col-md-6">
-    <div class="card">
-        <div class="card-header">
-            Текущая информация
-        </div>
-        {% if show_modem %}
-        <table class="table table-striped table-borderless text-center" style="margin: auto;">
-
-        {% for Key, Value in show_modem.items() %}
-            <tr>
-                <th scope = "row">{{ Key | safe }}: </th>
-                <td>{{ Value | safe }}</td>
-            </tr>
-        {% endfor %}
-
-        </table>
-        {% else %}
-            <h1 align="center">Модем не найден!</h1>
-        {% endif %}
-
-    </div>
-    </div>
-
-
-    <div class="col-md-6">
+<div class="row md-12 justify-content-center">
+    <div class="col md-12">
         <div class="card">
-            <form method="POST">
+
             <div class="card-header">
-                 <select id="m_opt" name="modem_options" required="required">
-                     <option value="">Выберите опцию</option>
-                     <option value="ussd_option">USSD запрос</option>
-                     <option value="apn_option">Настройка APN</option>
-                 </select>
+                Быстрое подключение к интернету
+            </div>
+
+            <div class="card-body">
+                <div class="form-check form-switch">
+                    <form method="post" action="{{ url_for('settings.modem_settings') }}">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               name="connectionSwitch" id="connectionSwitch_1"
+                               {% if form['modem_status'] == 11 %} checked {% endif %}>
+                        <label class="form-check-label" for="connectionSwitch_1">Connection off/on</label>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="row md-6 d-flex justify-content-center">
+
+    <div class="col md-6 mt-3">
+        <div class="card">
+
+            <div class="card-header">
+                Настройка соединения LTE модема
+            </div>
+
+            <div class="card-body">
+
+                <form class="form-horizontal" action="{{ url_for('settings.init_settings_form_handler') }}" method="post">
+                    <div class="form-group">
+                        <label>APN</label>
+                        <input placeholder="Введите APN" class="form-control" type="text" name="apn_input">
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="ipvX" value="4" id="flexRadio1" checked>
+                            <label class="form-check-label" for="flexRadio1">
+                                IPv4v6
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="ipvX" value="1" id="flexRadio2">
+                            <label class="form-check-label" for="flexRadio2">
+                                IPv4
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="ipvX" value="2" id="flexRadio3">
+                            <label class="form-check-label" for="flexRadio3">
+                                IPv6
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label>User</label>
+                        <input placeholder="Оставьте поле пустым, если не знаете, что это"
+                               class="form-control" name="user_input">
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label>Password</label>
+                        <input placeholder="Оставьте поле пустым, если не знаете, что это"
+                               class="form-control" name="password_input">
+
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <button class="btn btn-primary" type="submit">Отправить</button>
+                    </div>
+                    <!--
+                    <div class="form-group mt-3">
+                    </div>
+                    -->
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col md-6 mt-3">
+        <div class="card">
+            <form method="POST" action="{{ url_for('settings.modem_ussd_handler') }}">
+            <div class="card-header">
+                 USSD Запрос
             </div>
             <div class="card-body">
                 <label>Введите запрос:</label>
-                <div class="row mt-3">
-                    <input class="form-control" type="text" id="input_value" name="input_form">
+                <div class="form-group mt-3">
+                    <input class="form-control" type="text" id="input_value" name="input_form" required>
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-6">
                         <button class="btn btn-primary" type="submit">Отправить</button>
                     </div>
-                    <div id="ussd_request_hidden_button" class="hidden col-md-6">
+
+                    <div id="ussd_request_hidden_button"
+                         class= "col-md-6 {% if not (form['ussd_status'] == 3 or form['ussd_status'] == 2) %}
+                         hidden {% endif %}">
                         <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
                     </div>
 
@@ -55,17 +119,114 @@
             </div>
             </form>
             <div class="card-body">
-                <p>{% if response %}{{response | safe }} {% endif %}</p>
+
+                <div class="d-flex mt-2">
+
+                    <div class="col justify-content-start align-items-start">
+                        <p>Connection Status: {{ form['ussd_status'] | safe }}</p>
+                    </div>
+
+                    <div class="col d-flex justify-content-md-end">
+                        <button class="btn mt-0 me-0 copy-btn" id="copy_btn_2" value="2">
+                            <svg class="bi opacity-75 theme-icon" aria-hidden="true">
+                                <use id="copy_btn_svg_2" href="#clipboard"></use>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="row justify-content-center">
+                    <pre type="text"  id="copy_text_field_2">
+{% if form['response'] %}{{form['response'] | safe }} {% endif %}
+                    </pre>
+                </div>
+
             </div>
         </div>
     </div>
+
 </div>
 
+
+  <div class="container py-3">
+    <p class="lead">
+        Информация с модема
+    </p>
+    <hr>
+  </div>
+
+
+<div class="row md-6 mt-3 d-flex justify-content-center">
+
+    <div class="col md-6 mt-3">
+        <div class="card">
+            <div class="card-header">
+                Текущая информация
+            </div>
+            {% if form['show_modem'] %}
+            <table class="table table-striped table-borderless text-center" style="margin: auto;">
+
+            {% for Key, Value in form['show_modem'].items() %}
+                <tr>
+                    <th scope = "row">{{ Key | safe }}: </th>
+                    <td>{{ Value | safe }}</td>
+                </tr>
+            {% endfor %}
+
+            </table>
+            {% else %}
+                <h1>Модем не найден!</h1>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col md-6 mt-3">
+        <div class="card">
+            <div class="card-header">
+                Текущий статус соединения
+            </div>
+            <div class="card-body">
+
+                <div class="d-flex justify-content-md-end ">
+
+                    <div class="row ">
+                        <button class="btn mt-0 me-0 copy-btn" id="copy_btn_1" value="1">
+                            <svg class="bi opacity-75 theme-icon" aria-hidden="true">
+                                <use id="copy_btn_svg_1" href="#clipboard"></use>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="container d-flex justify-content-center">
+                    <pre id="copy_text_field_1">
+<span>State: {{ form['modem_status'] | safe }} </span>
+<span>Name: {{ form['name_status'] | safe }} </span>
+<span>APN: {{ form['modem_current_apn'] | safe }} </span>
+<span>IPv code: {{ form['modem_current_ipv'] | safe }} </span>
+<span>User: {{ form['modem_current_user'] | safe }} </span>
+<span>Password: {{ form['modem_current_password'] | safe }} </span>
+<span>Address: {{ form['address_status'] | safe }} </span>
+<span>Gateway: {{ form['gateway_status'] | safe }} </span>
+<span>DNS: {{ form['dns_status'] | safe }} </span>
+                    </pre>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+</div>
 
 {% endblock %}
 
 {% block scripts %}
 
 <script src="/static/js/select_options_button_handler.js"></script>
+<script>
 
+</script>
 {% endblock %}
