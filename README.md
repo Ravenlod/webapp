@@ -1,6 +1,6 @@
 # webapp
 Как подтянуть необходимые модули:
-  pip install -r /requirements.txt
+pip install -r /requirements.txt
 Как поднять веб-приложение:
 export FLASK_ENV=development
 export FLASK_DEBUG=true
@@ -14,7 +14,7 @@ sudo apt install libcairo2-dev libxt-dev libgirepository1.0-dev
 pip install pycairo PyGObject
 
 Or:
-
+sudo apt install libgirepository1.0-dev libcairo2-dev
 sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
 pip install pycairo
 pip install PyGObject
