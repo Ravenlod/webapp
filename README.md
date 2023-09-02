@@ -19,6 +19,10 @@ sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev
 pip install pycairo
 pip install PyGObject
 
+Or:
+sudo pacman -S libgirepository
+sudo pacman -S gobject-introspection
+
 Installing D-spy:
 
 apt install flatpak
