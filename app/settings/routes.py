@@ -1,3 +1,4 @@
+import os.path
 import subprocess
 
 import time
@@ -357,3 +358,21 @@ def routes(bp):
 
         return render_template("/settings/modem.html",
                                form=output_form)
+
+    @bp.route("/overlays", methods=['GET', 'POST'])
+    @login_required
+    def modem_overlays_control():
+        feedback_value = str()
+        file_path = "/boot/uEnv.txt"
+        overlays_path = "/boot/overlays"
+        if os.path.isfile(file_path):
+            file = open(file_path, "w")
+            while True:
+                line = file.readline()
+                if not line:
+                    break
+        else:
+            feedback_value = "File doesn't exist"
+
+        return render_template("/settings/overlays.html",
+                               feedback_value=feedback_value)
