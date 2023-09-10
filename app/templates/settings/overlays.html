@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Выбор оверлеев{% endblock %}
+{% block title_page %}Список доступных оверлеев{% endblock %}
+{% block content %}
+
+{% for file in overlays_list %}
+{{ file | safe }} <br>
+{%  endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/select_options_button_handler.js"></script>
+
+{% endblock %}

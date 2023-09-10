@@ -373,6 +373,12 @@ def routes(bp):
                     break
         else:
             feedback_value = "File doesn't exist"
-
+        overlays_list = os.listdir(overlays_path)
+        mutual_exclusive_overlays = tuple()
+        file_list = list()
+        for file in overlays_list:
+            filename, ext = os.path.splitext(file)
+            file_list.append(filename)
         return render_template("/settings/overlays.html",
-                               feedback_value=feedback_value)
+                               feedback_value=feedback_value,
+                               overlays_list=file_list)
