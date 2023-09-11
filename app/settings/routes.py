@@ -365,20 +365,39 @@ def routes(bp):
         feedback_value = str()
         file_path = "/boot/uEnv.txt"
         overlays_path = "/boot/overlays"
+        current_overlays = list()
         if os.path.isfile(file_path):
-            file = open(file_path, "w")
-            while True:
-                line = file.readline()
-                if not line:
-                    break
+            with open(file_path, "r") as uboot_config:
+
+                line = uboot_config.readlines()
+                cut = line[4][9:]
+                current_overlays = cut.split(' ')
+                # TODO hardcoded
+
         else:
             feedback_value = "File doesn't exist"
         overlays_list = os.listdir(overlays_path)
-        mutual_exclusive_overlays = tuple()
+        mutual_exclusive_overlays = (('UART0', 'SPI0'), ('UART1', 'I2C0', 'SPI2'), ('SPI2', 'UART2'),
+                                     ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
+        exclusive_group = -1
         file_list = list()
+        is_group_active_element_exist = [False] * len(mutual_exclusive_overlays)
         for file in overlays_list:
             filename, ext = os.path.splitext(file)
-            file_list.append(filename)
+            for group_index, mutual_exclusive_tuple in enumerate(mutual_exclusive_overlays):
+                for exclusive in mutual_exclusive_tuple:
+                    if exclusive.lower() in filename.lower():
+                        exclusive_group = group_index
+            ''''''
+            active_overlay = False
+            for i in current_overlays:
+                if i == filename:
+                    active_overlay = True
+                    is_group_active_element_exist[exclusive_group] = True
+            file_list.append((filename, active_overlay, exclusive_group))
         return render_template("/settings/overlays.html",
                                feedback_value=feedback_value,
-                               overlays_list=file_list)
+                               overlays_list=file_list,
+                               overlays_exception=mutual_exclusive_overlays,
+                               current_overlays=current_overlays,
+                               exclusive_overlays_status=is_group_active_element_exist)

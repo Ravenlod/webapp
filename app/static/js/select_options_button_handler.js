@@ -62,7 +62,7 @@ for(let i = 0; i < copy_btn.length; i ++)
     change_svg_btn.setAttribute("href", "#check2");
     setTimeout(() =>{change_svg_btn.setAttribute("href", "#clipboard")}, 5000)
 
-})
+    })
 }
 
 
