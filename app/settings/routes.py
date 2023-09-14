@@ -343,7 +343,7 @@ def routes(bp):
         mutual_exclusive_overlays = (('UART0', 'SPI0'), ('UART1', 'I2C0', 'SPI2'), ('SPI2', 'UART2'),
                                      ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
         current_overlays = list()
-        overlays_list = [] * len(mutual_exclusive_overlays)
+        overlays_list = {"Interface_" + str(key): list() for key in range(len(mutual_exclusive_overlays))}
 
         if os.path.isfile(file_path):
             with open(file_path, "r") as uboot_config:
@@ -362,15 +362,9 @@ def routes(bp):
             for group_index, group_tuple in enumerate(mutual_exclusive_overlays):
                 for exclusive in group_tuple:
                     if exclusive.lower() in filename.lower():
-                        overlays_list.append(filename)
-
-            '''            
-            for group_index, mutual_exclusive_tuple in enumerate(mutual_exclusive_overlays):
-                for exclusive in mutual_exclusive_tuple:
-                    if exclusive.lower() in filename.lower():
-                        overlays_list[group_index].append(filename)
-            '''
+                        overlays_list["Interface_" + str(group_index)].append(filename)
 
         return render_template("/settings/overlays.html",
                                feedback_value=feedback_value,
-                               overlays_list=overlays_list)
+                               overlays_list=overlays_list,
+                               current_overlays=current_overlays)

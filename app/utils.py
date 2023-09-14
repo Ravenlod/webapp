@@ -41,7 +41,7 @@ class ModemControl:
             obj_current_modem = self.modem_current()
             obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable(True)
 
-            time.sleep(12)
+            time.sleep(15)
             # TODO timer
             ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Modem',
                                                                              'Ports')

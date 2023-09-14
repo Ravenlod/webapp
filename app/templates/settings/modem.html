@@ -118,7 +118,7 @@
                 </div>
             </div>
             </form>
-            <div class="card-body">
+            <div class="card-body copy-container">
 
                 <div class="d-flex mt-2">
 
@@ -127,9 +127,9 @@
                     </div>
 
                     <div class="col d-flex justify-content-md-end">
-                        <button class="btn mt-0 me-0 copy-btn" id="copy_btn_2" value="2">
+                        <button class="btn mt-0 me-0 copy-btn">
                             <svg class="bi opacity-75 theme-icon" aria-hidden="true">
-                                <use id="copy_btn_svg_2" href="#clipboard"></use>
+                                <use class="copy_btn_svg" href="#clipboard"></use>
                             </svg>
                         </button>
                     </div>
@@ -137,7 +137,7 @@
                 </div>
 
                 <div class="row justify-content-center">
-                    <pre type="text"  id="copy_text_field_2">
+                    <pre type="text"  class="copy_text_field">
 {% if form['response'] %}{{form['response'] | safe }} {% endif %}
                     </pre>
                 </div>
@@ -186,14 +186,14 @@
             <div class="card-header">
                 Текущий статус соединения
             </div>
-            <div class="card-body">
+            <div class="card-body copy-container">
 
                 <div class="d-flex justify-content-md-end ">
 
-                    <div class="row ">
-                        <button class="btn mt-0 me-0 copy-btn" id="copy_btn_1" value="1">
+                    <div class="row">
+                        <button class="btn mt-0 me-0 copy-btn">
                             <svg class="bi opacity-75 theme-icon" aria-hidden="true">
-                                <use id="copy_btn_svg_1" href="#clipboard"></use>
+                                <use class="copy_btn_svg" href="#clipboard"></use>
                             </svg>
                         </button>
                     </div>
@@ -201,7 +201,7 @@
                 </div>
 
                 <div class="container d-flex justify-content-center">
-                    <pre id="copy_text_field_1">
+                    <pre class="copy_text_field">
 <span>State: {{ form['modem_status'] | safe }} </span>
 <span>Name: {{ form['name_status'] | safe }} </span>
 <span>APN: {{ form['modem_current_apn'] | safe }} </span>
@@ -227,6 +227,27 @@
 
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
+    let con_switch = document.getElementById('connectionSwitch_1');
 
+con_switch.addEventListener('click', () => {
+    let state = !con_switch.checked;
+    // const data = {state: state};
+    fetch("/settings/switch", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"status": state})
+    })
+    //.then(responseData => console.log('Server response:', responseData))
+    .then(response => {if(!response.ok){
+                            throw new Error('Network response Error');}
+                       response.json(); })
+
+    .catch(error => {
+        console.error("Error:", error);
+
+    });
+});
 </script>
 {% endblock %}
