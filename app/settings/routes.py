@@ -15,7 +15,7 @@ from flask import render_template, flash, current_app, request, redirect, url_fo
 from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
                        SysConfig, sys_service_restart, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
                        sys_poweroff, \
-                       ModemControl)
+                       ModemControl, findparam)
 
 
 def routes(bp):
@@ -113,15 +113,6 @@ def routes(bp):
     @bp.route('/lora', methods=['GET', 'POST'])
     @login_required
     def lora_settings():
-        def findparam(_path, word):
-            with open(_path, "r") as f:
-                text = f.readlines()
-                for line in text:
-                    if line.startswith(word):
-                        if line.find(word) != -1:
-                            result = line.split('=', 1)[1]
-                f.close()
-            return result
 
         def replaceparam(_path, key_to_replace, word):
             with open(_path, "r+") as lora_cfg:
@@ -286,7 +277,7 @@ def routes(bp):
         elif modem.modem_ussd_status() == 3:
             modem.modem_ussd_response(input_request)
             time.sleep(5)
-            # Костыль, но работает. При желании можно изменить время задержки
+            # Можно изменить время задержки
             response = modem.modem_ussd_network_request()
         session['ussd_response'] = response
         return redirect(url_for('settings.modem_settings'))
@@ -314,22 +305,6 @@ def routes(bp):
         (modem_current_apn, modem_current_ipv,
          modem_current_user, modem_current_pass) = session.get('modem_connection_config',
                                                                (modem.modem_get_init_apn(), 4, '', ''))
-
-        '''
-        if '/org/freedesktop/ModemManager1/Bearer' in current_bearer:
-            modem_cur_bearer_prop = modem.modem_get_current_bearer_properties(
-                'Properties', current_bearer)
-            modem_current_apn = modem_cur_bearer_prop['apn']
-            if modem_current_apn == '':
-                modem_current_apn = 'internet'
-
-            modem_current_user = modem_cur_bearer_prop['user']
-            modem_current_pass = modem_cur_bearer_prop['password']
-        elif current_bearer == 'error' or current_bearer == 'Critical error':
-            modem_current_apn = 'Something wrong happened'
-        else:
-            modem_current_apn = '[Default]'
-        '''
 
         current_bearer = str()
         if 'current_bearer' in session:
@@ -365,7 +340,11 @@ def routes(bp):
         feedback_value = str()
         file_path = "/boot/uEnv.txt"
         overlays_path = "/boot/overlays"
+        mutual_exclusive_overlays = (('UART0', 'SPI0'), ('UART1', 'I2C0', 'SPI2'), ('SPI2', 'UART2'),
+                                     ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
         current_overlays = list()
+        overlays_list = [] * len(mutual_exclusive_overlays)
+
         if os.path.isfile(file_path):
             with open(file_path, "r") as uboot_config:
 
@@ -376,28 +355,22 @@ def routes(bp):
 
         else:
             feedback_value = "File doesn't exist"
-        overlays_list = os.listdir(overlays_path)
-        mutual_exclusive_overlays = (('UART0', 'SPI0'), ('UART1', 'I2C0', 'SPI2'), ('SPI2', 'UART2'),
-                                     ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
-        exclusive_group = -1
-        file_list = list()
-        is_group_active_element_exist = [False] * len(mutual_exclusive_overlays)
-        for file in overlays_list:
+        dir_value = os.listdir(overlays_path)
+
+        for file in dir_value:
             filename, ext = os.path.splitext(file)
+            for group_index, group_tuple in enumerate(mutual_exclusive_overlays):
+                for exclusive in group_tuple:
+                    if exclusive.lower() in filename.lower():
+                        overlays_list.append(filename)
+
+            '''            
             for group_index, mutual_exclusive_tuple in enumerate(mutual_exclusive_overlays):
                 for exclusive in mutual_exclusive_tuple:
                     if exclusive.lower() in filename.lower():
-                        exclusive_group = group_index
-            ''''''
-            active_overlay = False
-            for i in current_overlays:
-                if i == filename:
-                    active_overlay = True
-                    is_group_active_element_exist[exclusive_group] = True
-            file_list.append((filename, active_overlay, exclusive_group))
+                        overlays_list[group_index].append(filename)
+            '''
+
         return render_template("/settings/overlays.html",
                                feedback_value=feedback_value,
-                               overlays_list=file_list,
-                               overlays_exception=mutual_exclusive_overlays,
-                               current_overlays=current_overlays,
-                               exclusive_overlays_status=is_group_active_element_exist)
+                               overlays_list=overlays_list)

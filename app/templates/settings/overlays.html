@@ -8,20 +8,15 @@
         <div class="card">
 
             <div class="card-header">
-                <p>Available overlays</p>
+                <p>Взаимно-исключающие интерфейсы</p>
             </div>
 
             <div class="card-body">
-                {% for file in overlays_list %}
-                <div class="row">
-                    <button class="btn overlay-select-btn  {% if file[1]==True %}
-                    btn-primary {% elif exclusive_overlays_status[file[2]]%}
-                    btn-secondary {% else %} btn-light {% endif %}" type="button">
-                            {{ file[0] | safe }}
-                    </button>
-                </div>
-
-                {%  endfor %}
+                {% for group in overlays_list %}
+                <p>
+                    {{ group | safe }}
+                </p>
+                {% endfor %}
             </div>
         </div>
 
@@ -71,26 +66,16 @@
 <script>
 var select_btn = document.getElementsByClassName('overlay-select-btn');
 
-
 for(let i = 0; i < select_btn.length; i ++)
 {
-//    let text_field = document.querySelector('#copy_text_field_' + String(copy_btn[i].getAttribute('value')));
-//    let change_svg_btn = document.querySelector('#copy_btn_svg_'+ String(copy_btn[i].getAttribute('value')));
-
-
 
     select_btn[i].addEventListener('click', () => {
-    if select_btn[i].classList.contains('active')
-    {
-        select_btn[i].classList.remove('active')
-    }
-    else if select_btn[i].classList.contains('btn-se')
     fetch("/settings/overlays", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({"status": state})
+        body: JSON.stringify({"index": i})
     })
     .then(response => {if(!response.ok){
                             throw new Error('Network response Error');}

@@ -1,4 +1,5 @@
 import subprocess
+import time
 from os import popen, path, system
 # from datetime import datetime
 from pydbus import SystemBus
@@ -19,7 +20,7 @@ class ModemControl:
             modem_state = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
                 'org.freedesktop.ModemManager1.Modem', 'State')
             return modem_state
-        except:
+        except Exception:
             return 'Modem is missing'
 
     def modem_add_connection_nm(self):
@@ -38,7 +39,10 @@ class ModemControl:
         try:
             bus = SystemBus()
             obj_current_modem = self.modem_current()
+            obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable(True)
 
+            time.sleep(12)
+            # TODO timer
             ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get('org.freedesktop.ModemManager1.Modem',
                                                                              'Ports')
             simple_connect = obj_current_modem['org.freedesktop.ModemManager1.Modem.Simple']
@@ -47,12 +51,11 @@ class ModemControl:
                                                   'user': GLib.Variant.new_string(config_input[2]),
                                                   'password': GLib.Variant.new_string(config_input[3])})
             self.current_bearer_path = bearer_path
-            obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable('true')
+
             self.current_bearer = bus.get("org.freedesktop.ModemManager1", bearer_path)
-            ip_dict = self.current_bearer['org.freedesktop.DBus.Properties'].Get(
+            ip_dict: dict = self.current_bearer['org.freedesktop.DBus.Properties'].Get(
                 'org.freedesktop.ModemManager1.Bearer', 'Ip4Config')
-            self.current_name = [port[0] for port in ports if "ww" in port[0]][0]
-            # port[0] возвращает список из одного элемента
+            self.current_name: str = [port[0] for port in ports if "ww" in port[0]][0]
 
             config_input = (self.current_name, ip_dict['address'], ip_dict['gateway'],
                             (ip_dict['dns1'], ip_dict['dns2']))
@@ -61,33 +64,36 @@ class ModemControl:
             sys_service_restart('systemd-networkd')
             sys_manage_ip_route(self.current_name, 500)
             return bearer_path
-        except Exception:
-            return 'error'
+
+        except Exception as err:
+            return err.args
         except KeyError:
             return 'Critical error'
 
     def modem_delete_connection(self):
-        bus = SystemBus()
+        try:
+            obj_current_modem = self.modem_current()
+            ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
+                'org.freedesktop.ModemManager1.Modem', 'Ports')
+            self.current_name = [port[0] for port in ports if "ww" in port[0]][0]
+            sys_manage_ip_route(self.current_name, 500, "delete")
+            simple_connect = obj_current_modem['org.freedesktop.ModemManager1.Modem.Simple']
 
-        obj_current_modem = self.modem_current()
-        ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
-            'org.freedesktop.ModemManager1.Modem', 'Ports')
-        self.current_name = [port[0] for port in ports if "ww" in port[0]][0]
-        sys_manage_ip_route(self.current_name, 500, "delete")
-        simple_connect = obj_current_modem['org.freedesktop.ModemManager1.Modem.Simple']
+            simple_connect.Disconnect('/')
 
-        simple_connect.Disconnect('/')
+            time.sleep(5)
+            # if self.modem_check_state() == 8:
+            obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable(False)
 
-        # list_of_bearers = obj_current_modem.ListBearers()
-        # print(list_of_bearers)
-        # for bearer_path in list_of_bearers:
-        #    obj_current_modem.DeleteBearer(bearer_path)
+            # else:
+            #     raise Exception(self.modem_check_state())
+            sys_wireless_config_clear()
+            sys_service_restart('systemd-networkd')
 
-        sys_wireless_config_clear()
-        sys_service_restart('systemd-networkd')
-
-        # obj_current_modem['org.freedesktop.ModemManager1.Modem'].Enable('false')
-        return True
+            return True
+        except Exception as err:
+            print(type(err))
+            return err
 
     @staticmethod
     def modem_get_current_bearer_properties(property_name: str, bearer_path: str):
@@ -206,8 +212,11 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
             # apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
             response = apn_set.List()[0]['apn']
             return response
-
+        except GLib.GError as err:
+            # print(err.args)
+            return 'Modem is disabled state'
         except Exception as e:
+            print(type(e))
             return e
 
     def modem_info(self):
@@ -290,6 +299,17 @@ class SysConfig:
             f'networkctl status | head -n8'
         ).read()
         return net
+
+
+def findparam(_path, word):
+    with open(_path, "r") as f:
+        text = f.readlines()
+        for line in text:
+            if line.startswith(word):
+                if line.find(word) != -1:
+                    result = line.split('=', 1)[1]
+        f.close()
+    return result
 
 
 def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):
@@ -388,8 +408,10 @@ def sys_auto_timezone():
 def sys_reboot():
     system('systemctl reboot -i')
 
+
 def sys_soft_reset():
     system('fw_setenv -f /etc/u-boot-default-env resetroot yes')
+
 
 def sys_poweroff():
     system('systemctl poweroff -i')
