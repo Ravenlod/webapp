@@ -10,9 +10,10 @@
         <div class="card-header">
             Список интерфейсов
         </div>
+        <form  method="post" action="{{ url_for('settings.modem_overlays_control') }}">
 
         <div class="card-body">
-            <form method="post" action="overlays.html">
+
                 {% for key, list in overlays_list.items() %}
                 {% if list %}
                 <div class="group-container-custom">
@@ -20,7 +21,7 @@
 
                         {% for overlay in list %}
                                 <input type="radio" class="btn-check" name="{{ key | safe }}"
-                                       id="{{ overlay | safe }}" autocomplete="off"
+                                       id="{{ overlay | safe }}" value="{{ overlay | safe }}" autocomplete="off"
                                         {% for current_overlay in current_overlays %}
                                             {% if overlay == current_overlay %}
                                                 checked
@@ -28,7 +29,6 @@
                                         {% endfor %}>
                                 <label class="btn btn-outline-primary" for="{{ overlay | safe }}">
                                     {{ overlay | safe }}</label>
-
                         {% endfor %}
 
                         <input type="button" class="btn btn-outline-info clear-btn" value="Сбросить выбор">
@@ -37,12 +37,10 @@
                 {% endif %}
 
             {% endfor %}
-            </form>
+
         </div>
 
-        <div class="card-body">
-            <p class="selected-overlays-output">Выбранные интерфейсы</p>
-        </div>
+
 
         <div class="card-footer">
             <button class="btn btn-primary" type="submit">
@@ -50,13 +48,20 @@
             </button>
         </div>
 
+        </form>
+
         </div>
 
     </div>
 
     <div class="col md-6">
-        <div class="row justify-content-center">
+        <div class="row">
             <div class="card">
+
+                <div class="card-header">
+                    Текущие интерфейсы
+                </div>
+
                 <div class="card-body">
                     {% for file in current_overlays %}
                     {{ file | safe }} <br>

@@ -344,25 +344,70 @@ def routes(bp):
                                      ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
         current_overlays = list()
         overlays_list = {"Interface_" + str(key): list() for key in range(len(mutual_exclusive_overlays))}
-
-        if os.path.isfile(file_path):
-            with open(file_path, "r") as uboot_config:
-
-                line = uboot_config.readlines()
-                cut = line[4][9:]
-                current_overlays = cut.split(' ')
-                # TODO hardcoded
-
-        else:
-            feedback_value = "File doesn't exist"
         dir_value = os.listdir(overlays_path)
-
         for file in dir_value:
             filename, ext = os.path.splitext(file)
             for group_index, group_tuple in enumerate(mutual_exclusive_overlays):
                 for exclusive in group_tuple:
                     if exclusive.lower() in filename.lower():
                         overlays_list["Interface_" + str(group_index)].append(filename)
+
+        if request.method == 'POST':
+            row_index = int()
+            switch = False
+            with (open(file_path, 'r') as uboot_config):
+                lines = uboot_config.readlines()
+                for line in lines:
+                    if 'overlays=' in line:
+                        cut = line[len('overlays='):]
+                        break
+                current_overlays_change = cut.split(' ')
+
+                for key, value in overlays_list.items():
+                    check = request.form.get(key)
+                    if check:
+                        print(check)
+                        for check_element in value:
+                            for change_index, test_element in enumerate(current_overlays_change):
+                                if check_element == test_element:
+                                    current_overlays_change[change_index] = check
+                                    switch = True
+                                    break
+                        print(switch)
+                        if not switch:
+                            current_overlays_change.insert(0, check)
+                        elif switch:
+                            switch = False
+                    else:
+                        for check_element in value:
+                            for change_index, test_element in enumerate(current_overlays_change):
+                                if check_element == test_element:
+                                    current_overlays_change.pop(change_index)
+
+                for index_temp, line in enumerate(lines):
+                    if 'overlays=' in line:
+                        row_index = index_temp
+                        break
+                temp_line = lines[row_index]
+                lines[row_index] = "overlays=" + " ".join(current_overlays_change)
+            print(lines)
+            with open(file_path, 'w') as uboot_config:
+                uboot_config.writelines(lines)
+            return redirect(url_for('settings.modem_overlays_control'))
+
+        if os.path.isfile(file_path):
+            with open(file_path, "r") as uboot_config:
+
+                lines = uboot_config.readlines()
+                for line in lines:
+                    if 'overlays=' in line:
+                        cut = line[len('overlays='):]
+                        break
+                current_overlays = cut.split(' ')
+
+
+        else:
+            feedback_value = "File doesn't exist"
 
         return render_template("/settings/overlays.html",
                                feedback_value=feedback_value,
