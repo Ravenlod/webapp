@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Выбор оверлеев{% endblock %}
+{% block title_page %}Список доступных оверлеев{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col md-6">
+        <div class="card">
+
+        <div class="card-header">
+            Список интерфейсов
+        </div>
+        <form  method="post" action="{{ url_for('settings.modem_overlays_control') }}">
+
+        <div class="card-body">
+
+                {% for key, list in overlays_list.items() %}
+                {% if list %}
+                <div class="group-container-custom">
+                    <div class="mt-2 btn-group interface-group" role="group" aria-label="Mutual Exclusive overlays">
+
+                        {% for overlay in list %}
+                                <input type="radio" class="btn-check" name="{{ key | safe }}"
+                                       id="{{ overlay | safe }}" value="{{ overlay | safe }}" autocomplete="off"
+                                        {% for current_overlay in current_overlays %}
+                                            {% if overlay == current_overlay %}
+                                                checked
+                                            {% endif %}
+                                        {% endfor %}>
+                                <label class="btn btn-outline-primary" for="{{ overlay | safe }}">
+                                    {{ overlay | safe }}</label>
+                        {% endfor %}
+
+                        <input type="button" class="btn btn-outline-info clear-btn" value="Сбросить выбор">
+                    </div>
+                </div>
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+
+
+        <div class="card-footer">
+            <button class="btn btn-primary" type="submit">
+                Отправить
+            </button>
+        </div>
+
+        </form>
+
+        </div>
+
+    </div>
+
+    <div class="col md-6">
+        <div class="row">
+            <div class="card">
+
+                <div class="card-header">
+                    Текущие интерфейсы
+                </div>
+
+                <div class="card-body">
+                    {% for file in current_overlays %}
+                    {{ file | safe }} <br>
+                    {%  endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/select_options_button_handler.js"></script>
+<script>
+let clear_buttons = document.getElementsByClassName('clear-btn');
+
+Array.from(clear_buttons).forEach((clear_button) => {
+    clear_button.addEventListener('click', () => {
+        let parentDiv = clear_button.closest(".interface-group");
+        let radioButtons = parentDiv.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach((radioButton) => {
+        radioButton.checked = false;
+        })
+    })
+})
+</script>
+{% endblock %}

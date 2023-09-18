@@ -1,3 +1,4 @@
+import os.path
 import subprocess
 
 import time
@@ -14,7 +15,7 @@ from flask import render_template, flash, current_app, request, redirect, url_fo
 from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
                        SysConfig, sys_service_restart, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
                        sys_poweroff, \
-                       ModemControl)
+                       ModemControl, findparam)
 
 
 def routes(bp):
@@ -112,15 +113,6 @@ def routes(bp):
     @bp.route('/lora', methods=['GET', 'POST'])
     @login_required
     def lora_settings():
-        def findparam(_path, word):
-            with open(_path, "r") as f:
-                text = f.readlines()
-                for line in text:
-                    if line.startswith(word):
-                        if line.find(word) != -1:
-                            result = line.split('=', 1)[1]
-                f.close()
-            return result
 
         def replaceparam(_path, key_to_replace, word):
             with open(_path, "r+") as lora_cfg:
@@ -285,7 +277,7 @@ def routes(bp):
         elif modem.modem_ussd_status() == 3:
             modem.modem_ussd_response(input_request)
             time.sleep(5)
-            # Костыль, но работает. При желании можно изменить время задержки
+            # Можно изменить время задержки
             response = modem.modem_ussd_network_request()
         session['ussd_response'] = response
         return redirect(url_for('settings.modem_settings'))
@@ -314,22 +306,6 @@ def routes(bp):
          modem_current_user, modem_current_pass) = session.get('modem_connection_config',
                                                                (modem.modem_get_init_apn(), 4, '', ''))
 
-        '''
-        if '/org/freedesktop/ModemManager1/Bearer' in current_bearer:
-            modem_cur_bearer_prop = modem.modem_get_current_bearer_properties(
-                'Properties', current_bearer)
-            modem_current_apn = modem_cur_bearer_prop['apn']
-            if modem_current_apn == '':
-                modem_current_apn = 'internet'
-
-            modem_current_user = modem_cur_bearer_prop['user']
-            modem_current_pass = modem_cur_bearer_prop['password']
-        elif current_bearer == 'error' or current_bearer == 'Critical error':
-            modem_current_apn = 'Something wrong happened'
-        else:
-            modem_current_apn = '[Default]'
-        '''
-
         current_bearer = str()
         if 'current_bearer' in session:
             current_bearer = session.get('current_bearer', 'Unknown Error')
@@ -357,3 +333,83 @@ def routes(bp):
 
         return render_template("/settings/modem.html",
                                form=output_form)
+
+    @bp.route("/overlays", methods=['GET', 'POST'])
+    @login_required
+    def modem_overlays_control():
+        feedback_value = str()
+        file_path = "/boot/uEnv.txt"
+        overlays_path = "/boot/overlays"
+        mutual_exclusive_overlays = (('UART0', 'SPI0'), ('UART1', 'I2C0', 'SPI2'), ('SPI2', 'UART2'),
+                                     ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
+        current_overlays = list()
+        overlays_list = {"Interface_" + str(key): list() for key in range(len(mutual_exclusive_overlays))}
+        dir_value = os.listdir(overlays_path)
+        for file in dir_value:
+            filename, ext = os.path.splitext(file)
+            for group_index, group_tuple in enumerate(mutual_exclusive_overlays):
+                for exclusive in group_tuple:
+                    if exclusive.lower() in filename.lower():
+                        overlays_list["Interface_" + str(group_index)].append(filename)
+
+        if request.method == 'POST':
+            row_index = int()
+            switch = False
+            with (open(file_path, 'r') as uboot_config):
+                lines = uboot_config.readlines()
+                for line in lines:
+                    if 'overlays=' in line:
+                        cut = line[len('overlays='):]
+                        break
+                current_overlays_change = cut.split(' ')
+
+                for key, value in overlays_list.items():
+                    check = request.form.get(key)
+                    if check:
+                        print(check)
+                        for check_element in value:
+                            for change_index, test_element in enumerate(current_overlays_change):
+                                if check_element == test_element:
+                                    current_overlays_change[change_index] = check
+                                    switch = True
+                                    break
+                        print(switch)
+                        if not switch:
+                            current_overlays_change.insert(0, check)
+                        elif switch:
+                            switch = False
+                    else:
+                        for check_element in value:
+                            for change_index, test_element in enumerate(current_overlays_change):
+                                if check_element == test_element:
+                                    current_overlays_change.pop(change_index)
+
+                for index_temp, line in enumerate(lines):
+                    if 'overlays=' in line:
+                        row_index = index_temp
+                        break
+                temp_line = lines[row_index]
+                lines[row_index] = "overlays=" + " ".join(current_overlays_change)
+            print(lines)
+            with open(file_path, 'w') as uboot_config:
+                uboot_config.writelines(lines)
+            return redirect(url_for('settings.modem_overlays_control'))
+
+        if os.path.isfile(file_path):
+            with open(file_path, "r") as uboot_config:
+
+                lines = uboot_config.readlines()
+                for line in lines:
+                    if 'overlays=' in line:
+                        cut = line[len('overlays='):]
+                        break
+                current_overlays = cut.split(' ')
+
+
+        else:
+            feedback_value = "File doesn't exist"
+
+        return render_template("/settings/overlays.html",
+                               feedback_value=feedback_value,
+                               overlays_list=overlays_list,
+                               current_overlays=current_overlays)
