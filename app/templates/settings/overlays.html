@@ -22,8 +22,8 @@
                         {% for overlay in list %}
                                 <input type="radio" class="btn-check" name="{{ key | safe }}"
                                        id="{{ overlay | safe }}" value="{{ overlay | safe }}" autocomplete="off"
-                                        {% for current_overlay in current_overlays %}
-                                            {% if overlay == current_overlay %}
+                                        {% for current in current_overlays %}
+                                            {% if overlay == current %}
                                                 checked
                                             {% endif %}
                                         {% endfor %}>
@@ -36,6 +36,19 @@
                 </div>
                 {% endif %}
 
+            {% endfor %}
+
+            {% for item in overlays_ungrouped %}
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="{{ item | safe }}" value="{{ item | safe }}"
+                           name="{{ item | safe }}"
+                        {% for current in current_overlays %}
+                            {% if item == current %}
+                                checked
+                            {% endif %}
+                        {% endfor %}>
+                  <label class="form-check-label" for="{{ item | safe }}">{{ item | safe }}</label>
+                </div>
             {% endfor %}
 
         </div>
@@ -63,8 +76,14 @@
                 </div>
 
                 <div class="card-body">
-                    {% for file in current_overlays %}
-                    {{ file | safe }} <br>
+                    {% for current in current_overlays %}
+                    {{ current | safe }} <br>
+                    {%  endfor %}
+                </div>
+
+                <div class="card-body">
+                    {% for item in overlays_ungrouped %}
+                            {{ item | safe }} <br>
                     {%  endfor %}
                 </div>
             </div>

@@ -343,14 +343,25 @@ def routes(bp):
         mutual_exclusive_overlays = (('UART0', 'SPI0'), ('UART1', 'I2C0', 'SPI2'), ('SPI2', 'UART2'),
                                      ('GPIO3', 'SPI1', 'UART3'), ('GPIO4', 'UART4'))
         current_overlays = list()
-        overlays_list = {"Interface_" + str(key): list() for key in range(len(mutual_exclusive_overlays))}
+        overlays_uart_groups = {"Interface_" + str(key): list() for key in range(len(mutual_exclusive_overlays))}
+        overlays_ungrouped = list()
+        unfiltered_overlays_list = list()
+        switch_group_ungroup = False
+        rk3308_overlays = list()
         dir_value = os.listdir(overlays_path)
         for file in dir_value:
             filename, ext = os.path.splitext(file)
-            for group_index, group_tuple in enumerate(mutual_exclusive_overlays):
-                for exclusive in group_tuple:
-                    if exclusive.lower() in filename.lower():
-                        overlays_list["Interface_" + str(group_index)].append(filename)
+            unfiltered_overlays_list.append(filename)
+            if 'rk3308' in filename.lower():
+                rk3308_overlays.append(filename)
+                for group_index, group_tuple in enumerate(mutual_exclusive_overlays):
+                    for exclusive in group_tuple:
+                        if exclusive.lower() in filename.lower():
+                            overlays_uart_groups["Interface_" + str(group_index)].append(filename)
+                            switch_group_ungroup = True
+                if not switch_group_ungroup:
+                    overlays_ungrouped.append(filename)
+                switch_group_ungroup = False
 
         if request.method == 'POST':
             row_index = int()
@@ -362,18 +373,19 @@ def routes(bp):
                         cut = line[len('overlays='):]
                         break
                 current_overlays_change = cut.split(' ')
+                current_overlays_change[-1] = current_overlays_change[-1][:-1]
+                print(current_overlays_change)
 
-                for key, value in overlays_list.items():
+                for key, value in overlays_uart_groups.items():
                     check = request.form.get(key)
-                    if check:
-                        print(check)
+                    if check is not None:
+
                         for check_element in value:
                             for change_index, test_element in enumerate(current_overlays_change):
                                 if check_element == test_element:
                                     current_overlays_change[change_index] = check
                                     switch = True
                                     break
-                        print(switch)
                         if not switch:
                             current_overlays_change.insert(0, check)
                         elif switch:
@@ -384,15 +396,37 @@ def routes(bp):
                                 if check_element == test_element:
                                     current_overlays_change.pop(change_index)
 
+                switch = False
+                print('----------------------')
+                for item in overlays_ungrouped:
+                    check = request.form.get(item)
+
+                    if check is not None:
+                        print(check)
+                        for change_index, test_element in enumerate(current_overlays_change):
+                            if check == test_element:
+                                switch = True
+                                break
+                        if not switch:
+                            current_overlays_change.insert(0, check)
+                        elif switch:
+                            switch = False
+                    else:
+                        for change_index, test_element in enumerate(current_overlays_change):
+                            if item == test_element:
+                                print('change')
+                                print(change_index)
+                                current_overlays_change.pop(change_index)
                 for index_temp, line in enumerate(lines):
                     if 'overlays=' in line:
                         row_index = index_temp
                         break
-                temp_line = lines[row_index]
-                lines[row_index] = "overlays=" + " ".join(current_overlays_change)
-            print(lines)
+                lines[row_index] = "overlays=" + " ".join(current_overlays_change) + '\n'
+                print(lines[row_index])
+
             with open(file_path, 'w') as uboot_config:
                 uboot_config.writelines(lines)
+
             return redirect(url_for('settings.modem_overlays_control'))
 
         if os.path.isfile(file_path):
@@ -404,12 +438,14 @@ def routes(bp):
                         cut = line[len('overlays='):]
                         break
                 current_overlays = cut.split(' ')
-
-
+                current_overlays[-1] = current_overlays[-1][:-1]
         else:
             feedback_value = "File doesn't exist"
 
         return render_template("/settings/overlays.html",
                                feedback_value=feedback_value,
-                               overlays_list=overlays_list,
-                               current_overlays=current_overlays)
+                               overlays_list=overlays_uart_groups,
+                               current_overlays=current_overlays,
+                               rk3308_overlays=rk3308_overlays,
+                               overlays_ungrouped=overlays_ungrouped,
+                               unfiltered_overlays_list=unfiltered_overlays_list)
