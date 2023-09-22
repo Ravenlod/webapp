@@ -101,9 +101,9 @@
 
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
-let clear_buttons = document.getElementsByClassName('clear-btn');
+let clear_buttons = document.querySelectorAll('.clear-btn');
 
-Array.from(clear_buttons).forEach((clear_button) => {
+clear_buttons.forEach((clear_button) => {
     clear_button.addEventListener('click', () => {
         let parentDiv = clear_button.closest(".interface-group");
         let radioButtons = parentDiv.querySelectorAll('input[type="radio"]');
