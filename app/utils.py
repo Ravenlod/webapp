@@ -228,7 +228,7 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
             # Values
             info = dict()
 
-            if any(slot != '/' for slot in current_modem.SimSlots):
+            if any(slot != '/' for slot in current_modem.Sim):
                 bus = SystemBus()
 
                 # SIM card
