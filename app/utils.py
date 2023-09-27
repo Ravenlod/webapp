@@ -9,6 +9,11 @@ from gi.repository import GLib
 ALLOWED_EXTENSIONS = {'conf'}
 
 
+
+
+
+
+
 class ModemControl:
     current_bearer = str()
     current_name = str()
@@ -33,7 +38,12 @@ class ModemControl:
                                     modem_path, '/')
         # Detect all modem in system
 
+    def mm(self, config_input: tuple[str, int, str, str]):
+        config_path = "/etc/modem/modem.conf"
+        
+
     def modem_add_connection(self, config_input: tuple[str, int, str, str]):
+        # apn, ip-type, user, password
         """Пытается подключить модем, в случае успеха возвращает путь на текущий носитель,
         или код ошибки при обработки исключения"""
         try:
@@ -227,8 +237,11 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
 
             # Values
             info = dict()
-
+            #print(current_modem.Sim)
+            #print(current_modem.SimSlots)
+            
             if any(slot != '/' for slot in current_modem.Sim):
+            # TODO Проблема с односимочными модемами
                 bus = SystemBus()
 
                 # SIM card

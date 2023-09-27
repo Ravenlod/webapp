@@ -15,9 +15,9 @@ def routes(bp):
     def index():
         modem = ModemControl()
 
-        modem_status = modem.modem_system_scan()
-        Config.IsModemAvailable = modem_status
-
+        # modem_status = modem.modem_system_scan()
+        # Config.IsModemAvailable = modem_status
+        # print(modem_status)
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         else:

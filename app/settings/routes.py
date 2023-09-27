@@ -397,7 +397,6 @@ def routes(bp):
                                     current_overlays_change.pop(change_index)
 
                 switch = False
-                print('----------------------')
                 for item in overlays_ungrouped:
                     check = request.form.get(item)
 

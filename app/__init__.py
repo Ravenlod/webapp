@@ -12,8 +12,17 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.url_map.strict_slashes = False
+
     modem = ModemControl()
-    app.config['IsModemAvailable'] = modem.modem_system_scan()
+    is_modem_available = bool(modem.modem_current())
+    app.config['IsModemAvailable'] = is_modem_available
+    # if is_modem_available:
+    #     with open()
+    # Config.IsModemAvailable = modem.modem_system_scan()
+    # print(bool(modem.modem_current()))
+
+
+
     # Initialize Flask extensions here
     db.init_app(app)
     migrate = Migrate(app, db)
