@@ -47,7 +47,7 @@ class ModemControl:
                     # print(line)
                     if config_vars[0] in line:
                         if "true" not in line:
-                            line_list[index] = config_vars[0] + "=" + "true"
+                            line_list[index] = config_vars[0] + "=" + "true" + '\n'
                     elif config_vars[i] in line:
                         line_list[index] = config_vars[i] + "=" + str(config_input[i - 1]) + '\n'
                         i += 1
@@ -70,15 +70,15 @@ class ModemControl:
     def modem_delete_connection():
         config_path = "/etc/modem/modem.conf"
         service_name = "modem-connection-control"
-        config_vars = "IS_MODEM_CONNECTED"
+        config_var = "IS_MODEM_CONNECTED"
         line_list = list()
         
         try:
             with open(config_path, "r") as config:
                 line_list = config.readlines()
             for index, line in enumerate(line_list):
-                if config_vars in line and "true" in line:
-                    line_list[index] = config_vars[0] + "=" + "false"
+                if config_var in line and "true" in line:
+                    line_list[index] = config_var + "=" + "false" + '\n'
                     break
     
             with open(config_path, "w") as config:
