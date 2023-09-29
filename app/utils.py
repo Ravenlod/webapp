@@ -44,7 +44,7 @@ class ModemControl:
                 i = 1
                 line_list = config.readlines()
                 for index, line in enumerate(line_list):
-                    print(line)
+                    # print(line)
                     if config_vars[0] in line:
                         if "true" not in line:
                             line_list[index] = config_vars[0] + "=" + "true"
@@ -53,12 +53,38 @@ class ModemControl:
                         i += 1
                         if i == len(config_input):
                             break
-                print("OK")
+                # print("OK")
             with open(config_path, "w") as config:
                 config.writelines(line_list)
 
             sys_service_manage(service_name, "start")
 
+        except Exception as err:
+            print(err)
+            return err.args
+        except KeyError:
+            print("Critical error")
+            return 'Critical error'
+
+    @staticmethod
+    def modem_delete_connection():
+        config_path = "/etc/modem/modem.conf"
+        service_name = "modem-connection-control"
+        config_vars = "IS_MODEM_CONNECTED"
+        line_list = list()
+        
+        try:
+            with open(config_path, "r") as config:
+                line_list = config.readlines()
+            for index, line in enumerate(line_list):
+                if config_vars in line and "true" in line:
+                    line_list[index] = config_vars[0] + "=" + "false"
+                    break
+    
+            with open(config_path, "w") as config:
+                config.writelines(line_list)
+    
+            sys_service_manage(service_name, "start")
         except Exception as err:
             print(err)
             return err.args
@@ -104,7 +130,7 @@ class ModemControl:
         except KeyError:
             return 'Critical error'
 
-    def modem_delete_connection(self):
+    def modem_delete_connection_mm(self):
         try:
             obj_current_modem = self.modem_current()
             ports = obj_current_modem['org.freedesktop.DBus.Properties'].Get(
