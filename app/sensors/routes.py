@@ -10,7 +10,7 @@ from app.forms.sensors import SensorsTextConf, SensorAddConf
 
 from flask import render_template, current_app, flash, request, redirect, url_for, send_file
 
-from app.utils import allowed_file, sys_service_restart
+from app.utils import allowed_file, sys_service_manage
 
 
 def routes(bp):
@@ -114,7 +114,7 @@ def routes(bp):
                     mkdir(active_folder_path)
                 if path.exists(active_path) is False:
                     shutil.copyfile(upload_path, active_path)
-                    sys_service_restart('telegraf')
+                    sys_service_manage('telegraf')
                 else:
                     flash("Шаблон уже активен!")
                 return redirect(url_for('sensors.index', name=filename))
@@ -125,7 +125,7 @@ def routes(bp):
         if request.method == 'GET' and disable_conf == 'y':
             if path.exists(active_path):
                 remove(active_path)
-                sys_service_restart('telegraf')
+                sys_service_manage('telegraf')
             else:
                 flash('Шаблон по какой-то причине отсутствует в списке активных')
             return redirect(url_for('sensors.index', name=filename))
@@ -140,7 +140,7 @@ def routes(bp):
             with open(active_path, 'w') as f_new:
                 f_new.write(str(conf_text))
                 f_new.close()
-            sys_service_restart('telegraf')
+            sys_service_manage('telegraf')
             return redirect(request.referrer)
 
         def readfile():

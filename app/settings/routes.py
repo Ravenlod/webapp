@@ -13,7 +13,7 @@ from app.forms.sensors import LoraConfigForm
 from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session
 
 from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
-                       SysConfig, sys_service_restart, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
+                       SysConfig, sys_service_manage, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
                        sys_poweroff, \
                        ModemControl, findparam)
 
@@ -196,7 +196,7 @@ def routes(bp):
                             )
             # DHCP, Ip, Gateway, DNS
             sys_wired_network_config(config_input)
-            sys_service_restart('systemd-networkd')
+            sys_service_manage('systemd-networkd')
             return redirect(url_for('settings.network_settings'))
         return render_template(
             'settings/network.html',

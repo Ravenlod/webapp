@@ -9,11 +9,6 @@ from gi.repository import GLib
 ALLOWED_EXTENSIONS = {'conf'}
 
 
-
-
-
-
-
 class ModemControl:
     current_bearer = str()
     current_name = str()
@@ -38,11 +33,40 @@ class ModemControl:
                                     modem_path, '/')
         # Detect all modem in system
 
-    def mm(self, config_input: tuple[str, int, str, str]):
+    @staticmethod
+    def modem_add_connection(config_input: tuple[str, int, str, str]):
         config_path = "/etc/modem/modem.conf"
-        
+        service_name = "modem-connection-control"
+        config_vars = "IS_MODEM_CONNECTED", "apn", "ip-type", "user", "password"
+        line_list = list()
+        try:
+            with open(config_path, "r") as config:
+                i = 1
+                line_list = config.readlines()
+                for index, line in enumerate(line_list):
+                    print(line)
+                    if config_vars[0] in line:
+                        if "true" not in line:
+                            line_list[index] = config_vars[0] + "=" + "true"
+                    elif config_vars[i] in line:
+                        line_list[index] = config_vars[i] + "=" + str(config_input[i - 1]) + '\n'
+                        i += 1
+                        if i == len(config_input):
+                            break
+                print("OK")
+            with open(config_path, "w") as config:
+                config.writelines(line_list)
 
-    def modem_add_connection(self, config_input: tuple[str, int, str, str]):
+            sys_service_manage(service_name, "start")
+
+        except Exception as err:
+            print(err)
+            return err.args
+        except KeyError:
+            print("Critical error")
+            return 'Critical error'
+
+    def modem_add_connection_mm(self, config_input: tuple[str, int, str, str]):
         # apn, ip-type, user, password
         """Пытается подключить модем, в случае успеха возвращает путь на текущий носитель,
         или код ошибки при обработки исключения"""
@@ -71,7 +95,7 @@ class ModemControl:
                             (ip_dict['dns1'], ip_dict['dns2']))
             # TODO Потенциальная ошибка, если DNS будет один экземпляр
             sys_wireless_network_config(config_input)
-            sys_service_restart('systemd-networkd')
+            sys_service_manage('systemd-networkd')
             sys_manage_ip_route(self.current_name, 500)
             return bearer_path
 
@@ -98,7 +122,7 @@ class ModemControl:
             # else:
             #     raise Exception(self.modem_check_state())
             sys_wireless_config_clear()
-            sys_service_restart('systemd-networkd')
+            sys_service_manage('systemd-networkd')
 
             return True
         except Exception as err:
@@ -224,10 +248,7 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
             return response
         except GLib.GError as err:
             # print(err.args)
-            return 'Modem is disabled state'
-        except Exception as e:
-            print(type(e))
-            return e
+            return 'internet'
 
     def modem_info(self):
         # DBUS lib tutorial https://github.com/LEW21/pydbus/blob/master/doc/tutorial.rst
@@ -237,11 +258,11 @@ MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
 
             # Values
             info = dict()
-            #print(current_modem.Sim)
-            #print(current_modem.SimSlots)
-            
+            # print(current_modem.Sim)
+            # print(current_modem.SimSlots)
+
             if any(slot != '/' for slot in current_modem.Sim):
-            # TODO Проблема с односимочными модемами
+                # TODO Проблема с односимочными модемами
                 bus = SystemBus()
 
                 # SIM card
@@ -364,6 +385,16 @@ def sys_wireless_config_clear():
         pass
 
 
+def sys_execute_external_script(config_path: str):
+    try:
+        subprocess.check_output(config_path, universal_newlines=True, shell=True)
+    except Exception as err:
+        print(err)
+        pass
+    except KeyError as kerr:
+        print(kerr)
+
+
 def sys_wired_network_config(config_input):
     """config_input(DHCP, Ip, Gateway, DNS)"""
     config_path = '/etc/systemd/network/20-wired.network'
@@ -460,7 +491,7 @@ def db_size():
 def db_clean():
     popen("rm -rf /home/root/.influxdbv2/engine/wal/*")
     popen("rm -rf /home/root/.influxdbv2/engine/data/*")
-    sys_service_restart("influxdb")
+    sys_service_manage("influxdb")
 
 
 def sys_uptime():
@@ -493,12 +524,22 @@ def sys_manage_ip_route(name: str, metric: int, change="add"):
         pass
 
 
-def sys_service_restart(service):
-    restart = [f"sudo systemctl restart {service}.service"]
+def sys_service_manage(service, command="restart"):
+    line = []
+    match command:
+        case "restart":
+            line = [f"sudo systemctl restart {service}.service"]
+        case "start":
+            line = [f"sudo systemctl start {service}.service"]
+        case "stop":
+            line = [f"sudo systemctl stop {service}.service"]
+        case _:
+            pass
+
     # stop = [f"sudo systemctl stop {service}.service"]
     # start = [f"sudo systemctl start {service}.service"]
     try:
-        subprocess.check_output(restart, universal_newlines=True, shell=True)
+        subprocess.check_output(line, universal_newlines=True, shell=True)
         # subprocess.check_output(stop, universal_newlines=True, shell=True)
         # subprocess.check_output(start, universal_newlines=True, shell=True)
     except subprocess.CalledProcessError:
