@@ -10,12 +10,11 @@ from werkzeug.security import safe_join
 from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
-from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session
+from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session, Response
 
-from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, \
-                       SysConfig, sys_service_manage, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
-                       sys_poweroff, \
-                       ModemControl, findparam)
+from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, SysConfig,
+                       sys_service_manage, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
+                       sys_poweroff, ModemControl, findparam)
 
 
 def routes(bp):
@@ -227,6 +226,26 @@ def routes(bp):
             'settings/firmware.html'
         )
 
+    @bp.route('/sse')
+    @login_required
+    def sse():
+        def generate_events():
+
+            while True:
+                modem = ModemControl()
+                modem_code_status = modem.modem_check_state()
+
+                modem_status_user_friendly = (
+                    'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
+                    'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
+                    'CONNECTED')
+                dbus_value = modem_status_user_friendly[modem_code_status + 1]
+
+                yield f"data: {dbus_value}\n\n"
+
+        return Response(generate_events(), content_type='text/event-stream')
+
+
     @bp.route("/init_connection_setup", methods=['POST'])
     @login_required
     def init_settings_form_handler():
@@ -269,7 +288,6 @@ def routes(bp):
         modem = ModemControl()
         input_request = request.form.get('input_form')
         response = False
-
         if input_request == 'ussd_cancel':
             response = modem.modem_ussd_cancel()
         elif modem.modem_ussd_status() == 1:
@@ -292,6 +310,12 @@ def routes(bp):
         show_modem = modem.getter()
         nw_form = NetworkForm()
         modem_code_status = modem.modem_check_state()
+
+        modem_status_user_friendly = (
+        'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
+        'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
+        'CONNECTED')
+        modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
 
         # Потенциально может быть проблема с получением поля имени Name
         network = SysConfig('wireless')
@@ -316,7 +340,7 @@ def routes(bp):
             response = session.get('ussd_response', 'Unknown Error')
             session.pop('ussd_response')
 
-        output_form = {'modem_status': modem_code_status,
+        output_form = {'modem_status': modem_status_user_friendly[modem_code_status + 1],
                        'show_modem': show_modem,
                        'response': response,
                        'nw_form': nw_form,
@@ -324,7 +348,7 @@ def routes(bp):
                        'address_status': ip_status,
                        'gateway_status': gw_status,
                        'dns_status': dns_status,
-                       'ussd_status': ussd_status,
+                       'ussd_status': modem_ussd_status_user_friendly[ussd_status],
                        'current_bearer': current_bearer,
                        'modem_current_apn': modem_current_apn,
                        'modem_current_ipv': modem_current_ipv,

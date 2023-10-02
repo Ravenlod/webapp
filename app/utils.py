@@ -226,14 +226,11 @@ class ModemControl:
             return False
 
     def modem_ussd_status(self):
-        """Метод, возвращающий код состояния сессии USSD. MM_MODEM_3GPP_USSD_SESSION_STATE_UNKNOWN = 0
-- Unknown state;
-MM_MODEM_3GPP_USSD_SESSION_STATE_IDLE = 1
-- No active session;
-MM_MODEM_3GPP_USSD_SESSION_STATE_ACTIVE = 2
-- A session is active and the mobile is waiting for a response;
-MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3
-- The network is waiting for the client's response."""
+        """Метод, возвращающий код состояния сессии USSD.
+MM_MODEM_3GPP_USSD_SESSION_STATE_UNKNOWN = 0 - Unknown state;
+MM_MODEM_3GPP_USSD_SESSION_STATE_IDLE = 1 - No active session;
+MM_MODEM_3GPP_USSD_SESSION_STATE_ACTIVE = 2 - A session is active and the mobile is waiting for a response;
+MM_MODEM_3GPP_USSD_SESSION_STATE_USER_RESPONSE = 3 - The network is waiting for the client's response."""
         try:
             obj_current_modem = self.modem_current()
             ussd_status = obj_current_modem['org.freedesktop.DBus.Properties'].Get(

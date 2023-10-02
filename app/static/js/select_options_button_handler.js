@@ -5,7 +5,7 @@ let input_value = document.getElementById("input_value");
 if (secondary_button != null){
     secondary_button.addEventListener('click', () => {
     input_value.value = "ussd_cancel";
-    alert("USSD session canceled");
+    // alert("USSD session canceled");
     });
 }
 

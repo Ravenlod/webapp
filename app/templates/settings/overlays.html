@@ -16,7 +16,10 @@
 
                 {% for key, list in overlays_list.items() %}
                 {% if list %}
+
                 <div class="group-container-custom">
+                    <div>{{ key | safe }}</div>
+
                     <div class="mt-2 btn-group interface-group" role="group" aria-label="Mutual Exclusive overlays">
 
                         {% for overlay in list %}
@@ -38,6 +41,10 @@
 
             {% endfor %}
 
+
+            <div class="card-header mt-5"> Доступные оверлеи </div>
+
+
             {% for item in overlays_ungrouped %}
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="{{ item | safe }}" value="{{ item | safe }}"
@@ -53,8 +60,6 @@
 
         </div>
 
-
-
         <div class="card-footer">
             <button class="btn btn-primary" type="submit">
                 Отправить
@@ -68,7 +73,7 @@
     </div>
 
     <div class="col md-6">
-        <div class="row">
+
             <div class="card">
 
                 <div class="card-header">
@@ -81,16 +86,8 @@
                     {%  endfor %}
                 </div>
 
-                <div class="card-body">
-                    {% for item in overlays_ungrouped %}
-                            {{ item | safe }} <br>
-                    {%  endfor %}
-                </div>
             </div>
-
-        </div>
     </div>
-
 </div>
 
 

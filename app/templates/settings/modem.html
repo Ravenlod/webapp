@@ -8,7 +8,15 @@
         <div class="card">
 
             <div class="card-header">
-                Быстрое подключение к интернету
+                <div class="row d-flex">
+                    <div class="col-6">
+                    Быстрое подключение к интернету
+                    </div>
+                    <div class="col-6 d-flex ju stify-content-end align-items-center">
+                        <span class="badge bg-warning text-blackb status-badge">{{ form['modem_status'] | safe }}</span>
+                    </div>
+                </div>
+
             </div>
 
             <div class="card-body">
@@ -16,7 +24,7 @@
                     <form method="post" action="{{ url_for('settings.modem_settings') }}">
                         <input class="form-check-input" type="checkbox" role="switch"
                                name="connectionSwitch" id="connectionSwitch_1"
-                               {% if form['modem_status'] == 11 %} checked {% endif %}>
+                               {% if form['modem_status'] == "CONNECTED" %} checked {% endif %}>
                         <label class="form-check-label" for="connectionSwitch_1">Connection off/on</label>
                     </form>
 
@@ -110,7 +118,7 @@
                     </div>
 
                     <div id="ussd_request_hidden_button"
-                         class= "col-md-6 {% if not (form['ussd_status'] == 3 or form['ussd_status'] == 2) %}
+                         class= "col-md-6 {% if not (form['ussd_status'] == 'USER RESPONSE' or form['ussd_status'] == 'ACTIVE' ) %}
                          hidden {% endif %}">
                         <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
                     </div>
@@ -123,7 +131,7 @@
                 <div class="d-flex mt-2">
 
                     <div class="col justify-content-start align-items-start">
-                        <p>Connection Status: {{ form['ussd_status'] | safe }}</p>
+                        <p>State: {{ form['ussd_status'] | safe }}</p>
                     </div>
 
                     <div class="col d-flex justify-content-md-end">
@@ -227,7 +235,7 @@
 
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
-    let con_switch = document.getElementById('connectionSwitch_1');
+let con_switch = document.getElementById('connectionSwitch_1');
 
 con_switch.addEventListener('click', () => {
     let state = !con_switch.checked;
@@ -249,5 +257,13 @@ con_switch.addEventListener('click', () => {
 
     });
 });
+
+ const eventSource = new EventSource('/settings/sse');
+
+eventSource.onmessage = function(event) {
+    const dataContainer = document.querySelector('.status-badge');
+    dataContainer.innerHTML = event.data;
+};
+
 </script>
 {% endblock %}
