@@ -21,8 +21,6 @@ def create_app(config_class=Config):
     # Config.IsModemAvailable = modem.modem_system_scan()
     # print(bool(modem.modem_current()))
 
-
-
     # Initialize Flask extensions here
     db.init_app(app)
     migrate = Migrate(app, db)
