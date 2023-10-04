@@ -1,3 +1,4 @@
+import json
 import os.path
 import subprocess
 
@@ -230,6 +231,7 @@ def routes(bp):
     @login_required
     def sse():
         def generate_events():
+            last_config = None
 
             while True:
                 modem = ModemControl()
@@ -239,12 +241,27 @@ def routes(bp):
                     'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
                     'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
                     'CONNECTED')
-                dbus_value = modem_status_user_friendly[modem_code_status + 1]
 
-                yield f"data: {dbus_value}\n\n"
+                network = SysConfig('wireless')
+                name_status = network.net_config_read('Name')
+                ip_status = network.net_config_read('Address')
+                gw_status = network.net_config_read('Gateway')
+                dns_status = network.net_config_read('DNS')
+
+                modem_config = (modem_status_user_friendly[modem_code_status + 1],
+                                name_status[:-1], ip_status[:-1], gw_status[:-1], dns_status[:-1])
+                json_modem_config = json.dumps(modem_config)
+
+                if not json_modem_config == last_config:
+                    print(json_modem_config)
+
+                    last_config = json_modem_config
+                    yield f"data: {json_modem_config}\n\n"
+                else:
+                    yield "data:\n\n"
+                time.sleep(1)
 
         return Response(generate_events(), content_type='text/event-stream')
-
 
     @bp.route("/init_connection_setup", methods=['POST'])
     @login_required
@@ -312,9 +329,9 @@ def routes(bp):
         modem_code_status = modem.modem_check_state()
 
         modem_status_user_friendly = (
-        'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
-        'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
-        'CONNECTED')
+            'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
+            'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
+            'CONNECTED')
         modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
 
         # Потенциально может быть проблема с получением поля имени Name

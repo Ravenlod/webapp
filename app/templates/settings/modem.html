@@ -12,8 +12,8 @@
                     <div class="col-6">
                     Быстрое подключение к интернету
                     </div>
-                    <div class="col-6 d-flex ju stify-content-end align-items-center">
-                        <span class="badge bg-warning text-blackb status-badge">{{ form['modem_status'] | safe }}</span>
+                    <div class="col-6 d-flex justify-content-end align-items-center">
+                        <span class="badge bg-info text-bg-dark modem_state">{{ form['modem_status'] | safe }}</span>
                     </div>
                 </div>
 
@@ -208,17 +208,17 @@
 
                 </div>
 
-                <div class="container d-flex justify-content-center">
+                <div class="container d-flex justify-content-start">
                     <pre class="copy_text_field">
-<span>State: {{ form['modem_status'] | safe }} </span>
-<span>Name: {{ form['name_status'] | safe }} </span>
-<span>APN: {{ form['modem_current_apn'] | safe }} </span>
-<span>IPv code: {{ form['modem_current_ipv'] | safe }} </span>
+<span class="modem_state">State: {{ form['modem_status'] | safe }} </span>
+<span class="modem_name">Name: {{ form['name_status'] | safe }} </span>
+<span class="modem_apn">APN: {{ form['modem_current_apn'] | safe }} </span>
+<span class="modem_ip">IPv code: {{ form['modem_current_ipv'] | safe }} </span>
 <span>User: {{ form['modem_current_user'] | safe }} </span>
 <span>Password: {{ form['modem_current_password'] | safe }} </span>
-<span>Address: {{ form['address_status'] | safe }} </span>
-<span>Gateway: {{ form['gateway_status'] | safe }} </span>
-<span>DNS: {{ form['dns_status'] | safe }} </span>
+<span class="modem_address">Address: {{ form['address_status'] | safe }} </span>
+<span class="modem_gateway">Gateway: {{ form['gateway_status'] | safe }} </span>
+<span class="modem_dns">DNS: {{ form['dns_status'] | safe }} </span>
                     </pre>
                 </div>
 
@@ -239,30 +239,44 @@ let con_switch = document.getElementById('connectionSwitch_1');
 
 con_switch.addEventListener('click', () => {
     let state = !con_switch.checked;
+    let message = {"status": state}
     // const data = {state: state};
-    fetch("/settings/switch", {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({"status": state})
-    })
-    //.then(responseData => console.log('Server response:', responseData))
-    .then(response => {if(!response.ok){
-                            throw new Error('Network response Error');}
-                       response.json(); })
+    postJSON("/settings/switch", message);
 
-    .catch(error => {
-        console.error("Error:", error);
-
-    });
 });
 
  const eventSource = new EventSource('/settings/sse');
 
 eventSource.onmessage = function(event) {
-    const dataContainer = document.querySelector('.status-badge');
-    dataContainer.innerHTML = event.data;
+    function iter(name, array, dataArray, index) {
+        array.forEach((point)=>{
+        point.innerHTML = name + dataArray[index];
+        });
+    }
+    console.log(event.data)
+
+    if (event.data !== '')
+    {
+        let modemConfig = JSON.parse(event.data)
+        const modemState = document.querySelectorAll('.modem_state');
+        iter("State: ", modemState, modemConfig, 0);
+
+        const modemName = document.querySelectorAll('.modem_name');
+        iter("Name: ", modemName, modemConfig, 1);
+
+        const modemAddress = document.querySelectorAll('.modem_address');
+        iter("Address: ", modemAddress, modemConfig, 2);
+
+        const modemGateway = document.querySelectorAll('.modem_gateway');
+        iter("Gateway: ", modemGateway, modemConfig, 3);
+
+        const modemDNS = document.querySelectorAll('.modem_dns');
+        iter("DNS: ", modemDNS, modemConfig, 4);
+    }
+
+
+
+
 };
 
 </script>

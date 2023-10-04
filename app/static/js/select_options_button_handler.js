@@ -1,3 +1,24 @@
+
+async function postJSON(path, data) {
+  try {
+    const response = await fetch(String(path), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+    .catch(error => {
+      console.error("Error:", error);})
+
+    //const result = await response.json();
+    //console.log("Success:", result);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+
 let secondary_button = document.getElementById("cnl-btn");
 let input_value = document.getElementById("input_value");
 
