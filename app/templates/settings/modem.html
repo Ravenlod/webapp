@@ -245,15 +245,15 @@ con_switch.addEventListener('click', () => {
 
 });
 
- const eventSource = new EventSource('/settings/sse');
+const eventSource = new EventSource('/settings/sse');
 
 eventSource.onmessage = function(event) {
     function iter(name, array, dataArray, index) {
-        array.forEach((point)=>{
+        array.forEach((point)=> {
         point.innerHTML = name + dataArray[index];
         });
     }
-    console.log(event.data)
+    // console.log(event.data)
 
     if (event.data !== '')
     {

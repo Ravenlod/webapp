@@ -253,7 +253,7 @@ def routes(bp):
                 json_modem_config = json.dumps(modem_config)
 
                 if not json_modem_config == last_config:
-                    print(json_modem_config)
+                    # print(json_modem_config)
 
                     last_config = json_modem_config
                     yield f"data: {json_modem_config}\n\n"
