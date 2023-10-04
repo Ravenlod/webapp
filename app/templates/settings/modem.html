@@ -47,7 +47,7 @@
 
             <div class="card-body">
 
-                <form class="form-horizontal" action="{{ url_for('settings.init_settings_form_handler') }}" method="post">
+                <form class="form-horizontal">
                     <div class="form-group">
                         <label>APN</label>
                         <input placeholder="Введите APN" class="form-control" type="text" name="apn_input">
@@ -89,7 +89,7 @@
                     </div>
 
                     <div class="form-group mt-3">
-                        <button class="btn btn-primary" type="submit">Отправить</button>
+                        <button class="btn btn-primary init-connection-btn" type="button">Отправить</button>
                     </div>
                     <!--
                     <div class="form-group mt-3">
@@ -235,14 +235,39 @@
 
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
+
+let secondary_button = document.getElementById("cnl-btn");
+let input_value = document.getElementById("input_value");
+
+
+if (secondary_button != null){
+    secondary_button.addEventListener('click', () => {
+    input_value.value = "ussd_cancel";
+    // alert("USSD session canceled");
+    });
+}
+
 let con_switch = document.getElementById('connectionSwitch_1');
 
 con_switch.addEventListener('click', () => {
     let state = !con_switch.checked;
-    let message = {"status": state}
+    let message = {status: state}
     // const data = {state: state};
     postJSON("/settings/switch", message);
 
+});
+
+let init_connection = document.querySelector('.init-connection-btn');
+
+init_connection.addEventListener('click', () => {
+    let apn = document.querySelector('[name="apn_input"]').value;
+    let ip = document.querySelector('[name="ipvX"]').value;
+    let user = document.querySelector('[name="user_input"]').value;
+    let password = document.querySelector('[name="password_input"]').value;
+
+    let message = {apn: apn, ip: ip, user: user, password: password};
+    console.log(message)
+    postJSON("/settings/init_connection_setup", message);
 });
 
 const eventSource = new EventSource('/settings/sse');

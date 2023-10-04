@@ -230,7 +230,7 @@ def routes(bp):
     @bp.route('/sse')
     @login_required
     def sse():
-        def generate_events():
+        def generate_event():
             last_config = None
 
             while True:
@@ -259,20 +259,25 @@ def routes(bp):
                     yield f"data: {json_modem_config}\n\n"
                 else:
                     yield "data:\n\n"
-                time.sleep(1)
+                time.sleep(0.1)
 
-        return Response(generate_events(), content_type='text/event-stream')
+        return Response(generate_event(), content_type='text/event-stream')
 
     @bp.route("/init_connection_setup", methods=['POST'])
     @login_required
     def init_settings_form_handler():
-        apn_info = request.form['apn_input']
-        ip_info = int(request.form.get("ipvX"))
-        user_info = request.form.get("user_input")
-        password_info = request.form.get("password_input")
-
+        # apn_info = request.form['apn_input']
+        # ip_info = int(request.form.get("ipvX"))
+        # user_info = request.form.get("user_input")
+        # password_info = request.form.get("password_input")
+        init_config = request.json
+        print(init_config)
+        apn_info = init_config.get('apn_input')
+        ip_info = int(init_config.get('ip'))
+        user_info = init_config.get("user_input")
+        password_info = init_config.get("password_input")
         conn_config_input = (apn_info, ip_info, user_info, password_info)
-        if conn_config_input == (None, ip_info, None, None) or conn_config_input[0] == '':
+        if conn_config_input == ('', ip_info, '', '') or conn_config_input[0] == '':
             conn_config_input = ('internet', ip_info, '', '')
 
         session['modem_connection_config'] = conn_config_input

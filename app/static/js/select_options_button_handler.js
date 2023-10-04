@@ -18,18 +18,6 @@ async function postJSON(path, data) {
   }
 }
 
-
-let secondary_button = document.getElementById("cnl-btn");
-let input_value = document.getElementById("input_value");
-
-
-if (secondary_button != null){
-    secondary_button.addEventListener('click', () => {
-    input_value.value = "ussd_cancel";
-    // alert("USSD session canceled");
-    });
-}
-
     //async functions
 let copy_buttons = document.getElementsByClassName('copy-btn');
 
