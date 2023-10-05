@@ -19,15 +19,20 @@
 
             </div>
 
-            <div class="card-body">
+            <div class="card-body d-flex flex-column">
                 <div class="form-check form-switch">
-                    <form method="post" action="{{ url_for('settings.modem_settings') }}">
-                        <input class="form-check-input" type="checkbox" role="switch"
+                    <form class="form-horizontal" method="post" action="{{ url_for('settings.modem_settings') }}">
+
+                        <input class="form-check-input connection-switch" type="checkbox" role="switch"
                                name="connectionSwitch" id="connectionSwitch_1"
                                {% if form['modem_status'] == "CONNECTED" %} checked {% endif %}>
                         <label class="form-check-label" for="connectionSwitch_1">Connection off/on</label>
-                    </form>
 
+                    </form>
+                </div>
+
+                <div class="mt-2">
+                    <button type="button" class="btn btn-outline-primary fast-connection-btn">Подтвердить</button>
                 </div>
             </div>
 
@@ -131,7 +136,7 @@
                 <div class="d-flex mt-2">
 
                     <div class="col justify-content-start align-items-start">
-                        <p>State: {{ form['ussd_status'] | safe }}</p>
+                        <p>USSD Session State: {{ form['ussd_status'] | safe }}</p>
                     </div>
 
                     <div class="col d-flex justify-content-md-end">
@@ -210,15 +215,15 @@
 
                 <div class="container d-flex justify-content-start">
                     <pre class="copy_text_field">
-<span class="modem_state">State: {{ form['modem_status'] | safe }} </span>
-<span class="modem_name">Name: {{ form['name_status'] | safe }} </span>
+<span class="modem_state"></span>
+<span class="modem_name"></span>
 <span class="modem_apn">APN: {{ form['modem_current_apn'] | safe }} </span>
-<span class="modem_ip">IPv code: {{ form['modem_current_ipv'] | safe }} </span>
-<span>User: {{ form['modem_current_user'] | safe }} </span>
-<span>Password: {{ form['modem_current_password'] | safe }} </span>
-<span class="modem_address">Address: {{ form['address_status'] | safe }} </span>
-<span class="modem_gateway">Gateway: {{ form['gateway_status'] | safe }} </span>
-<span class="modem_dns">DNS: {{ form['dns_status'] | safe }} </span>
+<span class="modem_ip">IPv: {{ form['modem_current_ipv'] | safe }} </span>
+<span class="modem_user">User: {{ form['modem_current_user'] | safe }} </span>
+<span class="modem_password">Password: {{ form['modem_current_password'] | safe }} </span>
+<span class="modem_address"></span>
+<span class="modem_gateway"></span>
+<span class="modem_dns"></span>
                     </pre>
                 </div>
 
@@ -247,14 +252,14 @@ if (secondary_button != null){
     });
 }
 
-let con_switch = document.getElementById('connectionSwitch_1');
+let con_switch = document.querySelector('.connection-switch');
+let fast_connection_btn = document.querySelector('.fast-connection-btn');
 
-con_switch.addEventListener('click', () => {
+fast_connection_btn.addEventListener('click', () => {
     let state = !con_switch.checked;
     let message = {status: state}
     // const data = {state: state};
     postJSON("/settings/switch", message);
-
 });
 
 let init_connection = document.querySelector('.init-connection-btn');
@@ -281,22 +286,22 @@ eventSource.onmessage = function(event) {
     // console.log(event.data)
 
     if (event.data !== '')
-    {
+    { /* modem_status_user_friendly[modem_code_status + 1], name_status[:-1],
+                                modem_current_apn, modem_current_ipv, modem_current_user,
+                                modem_current_pass, ip_status[:-1], gw_status[:-1], dns_status[:-1] */
         let modemConfig = JSON.parse(event.data)
-        const modemState = document.querySelectorAll('.modem_state');
-        iter("State: ", modemState, modemConfig, 0);
+        let nameArray = ["State: ", "Name: ", "APN: ", "IPv: ", "User: ", "Password: ", "Address: ", "Gateway: ",
+                        "DNS: "];
+        let classArray = [".modem_state", ".modem_name", ".modem_apn", ".modem_ip", ".modem_user", ".modem_password",
+                            ".modem_address", ".modem_gateway", "modem_dns"];
+        for( let i = 0; i < nameArray.length; i ++)
+        {
 
-        const modemName = document.querySelectorAll('.modem_name');
-        iter("Name: ", modemName, modemConfig, 1);
+            let modemState = document.querySelectorAll(classArray[i]);
+            iter(nameArray[i], modemState, modemConfig, i);
 
-        const modemAddress = document.querySelectorAll('.modem_address');
-        iter("Address: ", modemAddress, modemConfig, 2);
+        }
 
-        const modemGateway = document.querySelectorAll('.modem_gateway');
-        iter("Gateway: ", modemGateway, modemConfig, 3);
-
-        const modemDNS = document.querySelectorAll('.modem_dns');
-        iter("DNS: ", modemDNS, modemConfig, 4);
     }
 
 

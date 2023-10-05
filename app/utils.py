@@ -38,24 +38,11 @@ class ModemControl:
         config_path = "/etc/modem/modem.conf"
         service_name = "modem-connection-control"
         config_vars = "IS_MODEM_CONNECTED", "apn", "ip-type", "user", "password"
-        line_list = list()
         try:
-            with open(config_path, "r") as config:
-                i = 1
-                line_list = config.readlines()
-                for index, line in enumerate(line_list):
-                    # print(line)
-                    if config_vars[0] in line:
-                        if "true" not in line:
-                            line_list[index] = config_vars[0] + "=" + "true" + '\n'
-                    elif config_vars[i] in line:
-                        line_list[index] = config_vars[i] + "=" + str(config_input[i - 1]) + '\n'
-                        i += 1
-                        if i == len(config_input):
-                            break
-                # print("OK")
-            with open(config_path, "w") as config:
-                config.writelines(line_list)
+
+            final_config_input = list(config_input)
+            final_config_input.insert(0, "true")
+            sys_change_config_file(config_path, config_vars, final_config_input)
 
             sys_service_manage(service_name, "start")
 
@@ -74,15 +61,7 @@ class ModemControl:
         line_list = list()
         
         try:
-            with open(config_path, "r") as config:
-                line_list = config.readlines()
-            for index, line in enumerate(line_list):
-                if config_var in line and "true" in line:
-                    line_list[index] = config_var + "=" + "false" + '\n'
-                    break
-    
-            with open(config_path, "w") as config:
-                config.writelines(line_list)
+            sys_change_config_file(config_path, (config_var,), ["false"])
     
             sys_service_manage(service_name, "start")
         except Exception as err:
@@ -416,6 +395,23 @@ def sys_execute_external_script(config_path: str):
         pass
     except KeyError as kerr:
         print(kerr)
+
+
+def sys_change_config_file(file_path: str, name_prop_list: tuple, input_list: list):
+    line_list = list()
+    with open(file_path, "r") as config:
+        i = 0
+        line_list = config.readlines()
+        for index, line in enumerate(line_list):
+            if name_prop_list[i] in line:
+                # print(line, i)
+                line_list[index] = str(name_prop_list[i]) + '=' + str(input_list[i]) + '\n'
+                if i == len(name_prop_list) - 1:
+                    break
+                i += 1
+    with open(file_path, "w") as config:
+        # print(line_list)
+        config.writelines(line_list)
 
 
 def sys_wired_network_config(config_input):

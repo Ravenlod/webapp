@@ -8,6 +8,7 @@ from os import path, popen
 from flask_login import login_required
 from werkzeug.security import safe_join
 
+import app
 from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
@@ -232,34 +233,50 @@ def routes(bp):
     def sse():
         def generate_event():
             last_config = None
+            with app.create_app().app_context():
+                while True:
+                    modem = ModemControl()
+                    modem_code_status = modem.modem_check_state()
 
-            while True:
-                modem = ModemControl()
-                modem_code_status = modem.modem_check_state()
+                    modem_status_user_friendly = (
+                        'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
+                        'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
+                        'CONNECTED')
 
-                modem_status_user_friendly = (
-                    'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
-                    'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
-                    'CONNECTED')
+                    network = SysConfig('wireless')
+                    name_status = network.net_config_read('Name')
+                    ip_status = network.net_config_read('Address')
+                    gw_status = network.net_config_read('Gateway')
+                    dns_status = network.net_config_read('DNS')
 
-                network = SysConfig('wireless')
-                name_status = network.net_config_read('Name')
-                ip_status = network.net_config_read('Address')
-                gw_status = network.net_config_read('Gateway')
-                dns_status = network.net_config_read('DNS')
+                    file_path = "/etc/modem/modem.conf"
+                    name_prop_list = "apn", "ip-type", "user", "password"
+                    pulled_config = list()
+                    with open(file_path, "r") as config:
+                        i = 0
+                        line_list = config.readlines()
+                        for line in line_list:
+                            if name_prop_list[i] in line:
+                                # print(line, line.split('='))
+                                pulled_config.append(line.split('=')[1][:-1])
+                                if i == len(name_prop_list) - 1:
+                                    break
+                                i += 1
 
-                modem_config = (modem_status_user_friendly[modem_code_status + 1],
-                                name_status[:-1], ip_status[:-1], gw_status[:-1], dns_status[:-1])
-                json_modem_config = json.dumps(modem_config)
 
-                if not json_modem_config == last_config:
-                    # print(json_modem_config)
 
-                    last_config = json_modem_config
-                    yield f"data: {json_modem_config}\n\n"
-                else:
-                    yield "data:\n\n"
-                time.sleep(0.1)
+                    modem_config = (modem_status_user_friendly[modem_code_status + 1], name_status[:-1],
+                                    pulled_config[0], pulled_config[1], pulled_config[2], pulled_config[3],
+                                    ip_status[:-1], gw_status[:-1], dns_status[:-1])
+                    json_modem_config = json.dumps(modem_config)
+
+                    if not json_modem_config == last_config:
+                        # print(json_modem_config)
+                        last_config = json_modem_config
+                        yield f"data: {json_modem_config}\n\n"
+                    else:
+                        yield "data:\n\n"
+                    time.sleep(0.1)
 
         return Response(generate_event(), content_type='text/event-stream')
 
@@ -271,17 +288,17 @@ def routes(bp):
         # user_info = request.form.get("user_input")
         # password_info = request.form.get("password_input")
         init_config = request.json
-        print(init_config)
-        apn_info = init_config.get('apn_input')
-        ip_info = int(init_config.get('ip'))
-        user_info = init_config.get("user_input")
-        password_info = init_config.get("password_input")
+        # print(init_config, type(init_config))
+        apn_info = init_config['apn']
+        ip_info = int(init_config['ip'])
+        user_info = init_config["user"]
+        password_info = init_config["password"]
         conn_config_input = (apn_info, ip_info, user_info, password_info)
-        if conn_config_input == ('', ip_info, '', '') or conn_config_input[0] == '':
+        # print(conn_config_input)
+        if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
             conn_config_input = ('internet', ip_info, '', '')
 
         session['modem_connection_config'] = conn_config_input
-
         modem = ModemControl()
         connection_status = modem.modem_add_connection(conn_config_input)
         session['current_bearer'] = connection_status
