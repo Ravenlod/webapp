@@ -13,7 +13,7 @@
                     Быстрое подключение к интернету
                     </div>
                     <div class="col-6 d-flex justify-content-end align-items-center">
-                        <span class="badge bg-info text-bg-dark modem_state">{{ form['modem_status'] | safe }}</span>
+                        <span class="badge bg-info text-bg-dark modem_state"></span>
                     </div>
                 </div>
 
@@ -34,6 +34,11 @@
                 <div class="mt-2">
                     <button type="button" class="btn btn-outline-primary fast-connection-btn">Подтвердить</button>
                 </div>
+
+                <div class="alert-placeholder mt-2">
+
+                </div>
+
             </div>
 
         </div>
@@ -217,10 +222,10 @@
                     <pre class="copy_text_field">
 <span class="modem_state"></span>
 <span class="modem_name"></span>
-<span class="modem_apn">APN: {{ form['modem_current_apn'] | safe }} </span>
-<span class="modem_ip">IPv: {{ form['modem_current_ipv'] | safe }} </span>
-<span class="modem_user">User: {{ form['modem_current_user'] | safe }} </span>
-<span class="modem_password">Password: {{ form['modem_current_password'] | safe }} </span>
+<span class="modem_apn"></span>
+<span class="modem_ip"></span>
+<span class="modem_user"></span>
+<span class="modem_password"></span>
 <span class="modem_address"></span>
 <span class="modem_gateway"></span>
 <span class="modem_dns"></span>
@@ -252,18 +257,25 @@ if (secondary_button != null){
     });
 }
 
+let stateFlag = document.querySelector('.modem_state').innerText;
 let con_switch = document.querySelector('.connection-switch');
 let fast_connection_btn = document.querySelector('.fast-connection-btn');
+let alert_banner = document.querySelector('.alert-placeholder');
 
 fast_connection_btn.addEventListener('click', () => {
+
     let state = !con_switch.checked;
+
+    alert_banner.innerHTML = '';
     let message = {status: state}
     // const data = {state: state};
     postJSON("/settings/switch", message);
+
 });
 
-let init_connection = document.querySelector('.init-connection-btn');
 
+
+let init_connection = document.querySelector('.init-connection-btn');
 init_connection.addEventListener('click', () => {
     let apn = document.querySelector('[name="apn_input"]').value;
     let ip = document.querySelector('[name="ipvX"]').value;
@@ -286,14 +298,15 @@ eventSource.onmessage = function(event) {
     // console.log(event.data)
 
     if (event.data !== '')
-    { /* modem_status_user_friendly[modem_code_status + 1], name_status[:-1],
-                                modem_current_apn, modem_current_ipv, modem_current_user,
-                                modem_current_pass, ip_status[:-1], gw_status[:-1], dns_status[:-1] */
+    {
         let modemConfig = JSON.parse(event.data)
         let nameArray = ["State: ", "Name: ", "APN: ", "IPv: ", "User: ", "Password: ", "Address: ", "Gateway: ",
                         "DNS: "];
         let classArray = [".modem_state", ".modem_name", ".modem_apn", ".modem_ip", ".modem_user", ".modem_password",
                             ".modem_address", ".modem_gateway", "modem_dns"];
+
+        init_connection.disabled = !(modemConfig[0] !== "DISABLED" || modemConfig !== "REGISTERED");
+
         for( let i = 0; i < nameArray.length; i ++)
         {
 
@@ -303,9 +316,6 @@ eventSource.onmessage = function(event) {
         }
 
     }
-
-
-
 
 };
 

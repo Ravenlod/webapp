@@ -324,10 +324,12 @@ class SysConfig:
         with open(self.netconfig, "r") as f:
             text = f.readlines()
             for line in text:
+                # print(line)
                 if line.startswith(word):
                     if line.find(word) != -1:
                         result = line.split('=', 1)[1]
             f.close()
+            # print("Result: ", result)
         return result
 
     def ip_current(self):

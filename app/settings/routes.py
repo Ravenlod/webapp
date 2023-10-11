@@ -232,22 +232,25 @@ def routes(bp):
     @login_required
     def sse():
         def generate_event():
-            last_config = None
-            with app.create_app().app_context():
-                while True:
-                    modem = ModemControl()
-                    modem_code_status = modem.modem_check_state()
+            last_state = None
+            last_address = None
+            modem = ModemControl()
+            network = SysConfig('wireless')
+            while True:
+
+                modem_code_status = modem.modem_check_state()
+
+                # Потенциально может быть проблема с получением поля с именем Name
+                name_status = network.net_config_read('Name')
+                ip_status = network.net_config_read('Address')
+                gw_status = network.net_config_read('Gateway')
+                dns_status = network.net_config_read('DNS')
+                if not modem_code_status == last_state or not last_address == ip_status:
 
                     modem_status_user_friendly = (
                         'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
                         'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
                         'CONNECTED')
-
-                    network = SysConfig('wireless')
-                    name_status = network.net_config_read('Name')
-                    ip_status = network.net_config_read('Address')
-                    gw_status = network.net_config_read('Gateway')
-                    dns_status = network.net_config_read('DNS')
 
                     file_path = "/etc/modem/modem.conf"
                     name_prop_list = "apn", "ip-type", "user", "password"
@@ -263,38 +266,35 @@ def routes(bp):
                                     break
                                 i += 1
 
-
-
                     modem_config = (modem_status_user_friendly[modem_code_status + 1], name_status[:-1],
                                     pulled_config[0], pulled_config[1], pulled_config[2], pulled_config[3],
                                     ip_status[:-1], gw_status[:-1], dns_status[:-1])
                     json_modem_config = json.dumps(modem_config)
+                    # print(json_modem_config)
+                    last_address = ip_status
+                    last_state = modem_code_status
+                    yield f"data: {json_modem_config}\n"
+                    yield f"retry: 3000\n\n"
+                else:
+                    yield "data:\n"
+                    yield f"retry: 3000\n\n"
 
-                    if not json_modem_config == last_config:
-                        # print(json_modem_config)
-                        last_config = json_modem_config
-                        yield f"data: {json_modem_config}\n\n"
-                    else:
-                        yield "data:\n\n"
-                    time.sleep(0.1)
+                time.sleep(1)
 
         return Response(generate_event(), content_type='text/event-stream')
 
     @bp.route("/init_connection_setup", methods=['POST'])
     @login_required
     def init_settings_form_handler():
-        # apn_info = request.form['apn_input']
-        # ip_info = int(request.form.get("ipvX"))
-        # user_info = request.form.get("user_input")
-        # password_info = request.form.get("password_input")
+
         init_config = request.json
-        # print(init_config, type(init_config))
+
         apn_info = init_config['apn']
         ip_info = int(init_config['ip'])
         user_info = init_config["user"]
         password_info = init_config["password"]
         conn_config_input = (apn_info, ip_info, user_info, password_info)
-        # print(conn_config_input)
+
         if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
             conn_config_input = ('internet', ip_info, '', '')
 
@@ -334,6 +334,7 @@ def routes(bp):
         elif modem.modem_ussd_status() == 3:
             modem.modem_ussd_response(input_request)
             time.sleep(5)
+
             # Можно изменить время задержки
             response = modem.modem_ussd_network_request()
         session['ussd_response'] = response
@@ -349,30 +350,12 @@ def routes(bp):
         show_modem = modem.getter()
         nw_form = NetworkForm()
         modem_code_status = modem.modem_check_state()
-
         modem_status_user_friendly = (
             'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
             'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
             'CONNECTED')
         modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-
-        # Потенциально может быть проблема с получением поля имени Name
-        network = SysConfig('wireless')
-        name_status = network.net_config_read('Name')
-        ip_status = network.net_config_read('Address')
-        gw_status = network.net_config_read('Gateway')
-        dns_status = network.net_config_read('DNS')
-
         ussd_status = modem.modem_ussd_status()
-
-        (modem_current_apn, modem_current_ipv,
-         modem_current_user, modem_current_pass) = session.get('modem_connection_config',
-                                                               (modem.modem_get_init_apn(), 4, '', ''))
-
-        current_bearer = str()
-        if 'current_bearer' in session:
-            current_bearer = session.get('current_bearer', 'Unknown Error')
-            session.pop('current_bearer')
 
         response = str()
         if 'ussd_response' in session:
@@ -383,16 +366,8 @@ def routes(bp):
                        'show_modem': show_modem,
                        'response': response,
                        'nw_form': nw_form,
-                       'name_status': name_status,
-                       'address_status': ip_status,
-                       'gateway_status': gw_status,
-                       'dns_status': dns_status,
                        'ussd_status': modem_ussd_status_user_friendly[ussd_status],
-                       'current_bearer': current_bearer,
-                       'modem_current_apn': modem_current_apn,
-                       'modem_current_ipv': modem_current_ipv,
-                       'modem_current_user': modem_current_user,
-                       'modem_current_password': modem_current_pass}
+                       }
 
         return render_template("/settings/modem.html",
                                form=output_form)
