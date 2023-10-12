@@ -260,13 +260,13 @@ if (secondary_button != null){
 let stateFlag = document.querySelector('.modem_state').innerText;
 let con_switch = document.querySelector('.connection-switch');
 let fast_connection_btn = document.querySelector('.fast-connection-btn');
-let alert_banner = document.querySelector('.alert-placeholder');
+//let alert_banner = document.querySelector('.alert-placeholder');
 
 fast_connection_btn.addEventListener('click', () => {
 
     let state = !con_switch.checked;
 
-    alert_banner.innerHTML = '';
+    //alert_banner.innerHTML = '';
     let message = {status: state}
     // const data = {state: state};
     postJSON("/settings/switch", message);

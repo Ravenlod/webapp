@@ -228,10 +228,8 @@ def routes(bp):
             'settings/firmware.html'
         )
 
-    @bp.route('/sse')
-    @login_required
-    def sse():
-        def generate_event():
+
+    def generate_event():
             last_state = None
             last_address = None
             modem = ModemControl()
@@ -273,13 +271,17 @@ def routes(bp):
                     # print(json_modem_config)
                     last_address = ip_status
                     last_state = modem_code_status
-                    yield f"data: {json_modem_config}\n"
-                    yield f"retry: 3000\n\n"
+                    yield f"data: {json_modem_config}\n\n"
+                    # yield f"retry: 3000\n\n"
                 else:
-                    yield "data:\n"
-                    yield f"retry: 3000\n\n"
+                    yield "data:\n\n"
+                    # yield f"retry: 3000\n\n"
 
-                time.sleep(1)
+                time.sleep(0.5)
+
+    @bp.route('/sse')
+    @login_required
+    def sse():
 
         return Response(generate_event(), content_type='text/event-stream')
 
