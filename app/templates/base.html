@@ -269,21 +269,17 @@
                     Общие
                   </a>
                 </li>
-                <li>
+                <li class="nav-settings-divider">
                   <hr class="dropdown-divider">
                 </li>
-                    {% if config.get('IsModemAvailable') %}
+
                 <li>
-                    <a class="dropdown-item"
-                       href="{{ url_for('settings.modem_settings') }}">
-                    <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
-                    LTE-модем
-                    </a>
+
                 </li>
                 <li>
-                  <hr class="dropdown-divider">
+
                 </li>
-                    {% endif %}
+
                 <li>
                   <a class="dropdown-item" href="{{ url_for('settings.lora_settings') }}">
                     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-wifi"></use></svg>
@@ -465,6 +461,33 @@
             })
           })()
 
+          document.addEventListener("DOMContentLoaded", async ()=>{
+
+              await fetch("/connected_device_handler")
+              .then(response => {
+                  if (response.status !== 200) {
+                      console.log('Ошибка: ' + response.status);
+                    }
+                  return response.json();
+              })
+              .then(data =>{
+                  if (data["device-type"] === "1")
+                  {
+                      let targetLi = document.querySelector(".nav-settings-divider");
+                      let newLi = document.createElement("li");
+                      newLi.innerHTML =
+                          `<a class="dropdown-item" href="{{ url_for('settings.modem_settings') }}">
+                        <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
+                        LTE-модем
+                        </a>
+                        <hr class="dropdown-divider">`;
+                      targetLi.insertAdjacentElement('afterend', newLi);
+
+                  }
+              });
+
+
+          });
 
 
     </script>

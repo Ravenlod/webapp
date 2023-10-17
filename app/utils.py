@@ -5,6 +5,7 @@ from os import popen, path, system
 from pydbus import SystemBus
 from flask import flash
 from gi.repository import GLib
+import json
 
 ALLOWED_EXTENSIONS = {'conf'}
 
@@ -59,10 +60,10 @@ class ModemControl:
         service_name = "modem-connection-control"
         config_var = "IS_MODEM_CONNECTED"
         line_list = list()
-        
+
         try:
             sys_change_config_file(config_path, (config_var,), ["false"])
-    
+
             sys_service_manage(service_name, "start")
         except Exception as err:
             print(err)
@@ -348,6 +349,55 @@ def findparam(_path, word):
                     result = line.split('=', 1)[1]
         f.close()
     return result
+
+
+def generate_event():
+    last_state = None
+    last_address = None
+    modem = ModemControl()
+    network = SysConfig('wireless')
+    while True:
+        modem_code_status = modem.modem_check_state()
+
+        # Потенциально может быть проблема с получением поля с именем Name
+        name_status = network.net_config_read('Name')
+        ip_status = network.net_config_read('Address')
+        gw_status = network.net_config_read('Gateway')
+        dns_status = network.net_config_read('DNS')
+        if not modem_code_status == last_state or not last_address == ip_status:
+            modem_status_user_friendly = (
+                'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
+                'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
+                'CONNECTED')
+
+            file_path = "/etc/modem/modem.conf"
+            name_prop_list = "apn", "ip-type", "user", "password"
+            pulled_config = list()
+            with open(file_path, "r") as config:
+                i = 0
+                line_list = config.readlines()
+                for line in line_list:
+                    if name_prop_list[i] in line:
+                        # print(line, line.split('='))
+                        pulled_config.append(line.split('=')[1][:-1])
+                        if i == len(name_prop_list) - 1:
+                            break
+                        i += 1
+
+            modem_config = (modem_status_user_friendly[modem_code_status + 1], name_status[:-1],
+                            pulled_config[0], pulled_config[1], pulled_config[2], pulled_config[3],
+                            ip_status[:-1], gw_status[:-1], dns_status[:-1])
+            json_modem_config = json.dumps(modem_config)
+            # print(json_modem_config)
+            last_address = ip_status
+            last_state = modem_code_status
+            yield f"data: {json_modem_config}\n\n"
+            # yield f"retry: 3000\n\n"
+        else:
+            yield "data:\n\n"
+            # yield f"retry: 3000\n\n"
+
+        time.sleep(0.5)
 
 
 def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):

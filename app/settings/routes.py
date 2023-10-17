@@ -1,4 +1,3 @@
-import json
 import os.path
 import subprocess
 
@@ -8,7 +7,6 @@ from os import path, popen
 from flask_login import login_required
 from werkzeug.security import safe_join
 
-import app
 from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
@@ -16,7 +14,7 @@ from flask import render_template, flash, current_app, request, redirect, url_fo
 
 from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, SysConfig,
                        sys_service_manage, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
-                       sys_poweroff, ModemControl, findparam)
+                       sys_poweroff, ModemControl, findparam, generate_event)
 
 
 def routes(bp):
@@ -228,62 +226,11 @@ def routes(bp):
             'settings/firmware.html'
         )
 
-
-    def generate_event():
-            last_state = None
-            last_address = None
-            modem = ModemControl()
-            network = SysConfig('wireless')
-            while True:
-
-                modem_code_status = modem.modem_check_state()
-
-                # Потенциально может быть проблема с получением поля с именем Name
-                name_status = network.net_config_read('Name')
-                ip_status = network.net_config_read('Address')
-                gw_status = network.net_config_read('Gateway')
-                dns_status = network.net_config_read('DNS')
-                if not modem_code_status == last_state or not last_address == ip_status:
-
-                    modem_status_user_friendly = (
-                        'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
-                        'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
-                        'CONNECTED')
-
-                    file_path = "/etc/modem/modem.conf"
-                    name_prop_list = "apn", "ip-type", "user", "password"
-                    pulled_config = list()
-                    with open(file_path, "r") as config:
-                        i = 0
-                        line_list = config.readlines()
-                        for line in line_list:
-                            if name_prop_list[i] in line:
-                                # print(line, line.split('='))
-                                pulled_config.append(line.split('=')[1][:-1])
-                                if i == len(name_prop_list) - 1:
-                                    break
-                                i += 1
-
-                    modem_config = (modem_status_user_friendly[modem_code_status + 1], name_status[:-1],
-                                    pulled_config[0], pulled_config[1], pulled_config[2], pulled_config[3],
-                                    ip_status[:-1], gw_status[:-1], dns_status[:-1])
-                    json_modem_config = json.dumps(modem_config)
-                    # print(json_modem_config)
-                    last_address = ip_status
-                    last_state = modem_code_status
-                    yield f"data: {json_modem_config}\n\n"
-                    # yield f"retry: 3000\n\n"
-                else:
-                    yield "data:\n\n"
-                    # yield f"retry: 3000\n\n"
-
-                time.sleep(0.5)
-
     @bp.route('/sse')
     @login_required
     def sse():
-
         return Response(generate_event(), content_type='text/event-stream')
+
 
     @bp.route("/init_connection_setup", methods=['POST'])
     @login_required

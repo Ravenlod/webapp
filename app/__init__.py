@@ -1,4 +1,6 @@
-from flask import Flask, render_template
+import json
+
+from flask import Flask, render_template, Response
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
@@ -13,9 +15,6 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     app.url_map.strict_slashes = False
 
-    modem = ModemControl()
-    is_modem_available = bool(modem.modem_current())
-    app.config['IsModemAvailable'] = is_modem_available
     # if is_modem_available:
     #     with open()
     # Config.IsModemAvailable = modem.modem_system_scan()
@@ -66,5 +65,17 @@ def create_app(config_class=Config):
     @app.route('/health')
     def test_page():
         return 'OK'
+
+    @app.route('/connected_device_handler')
+    def device_handler():
+        modem = ModemControl()
+        is_modem_available = bool(modem.modem_current())
+        # app.config['IsModemAvailable'] = is_modem_available
+        if is_modem_available:
+            data = {"device-type": "1"}
+        else:
+            data = {"device-type": "-1"}
+        json_data = json.dumps(data)
+        return Response(json_data, content_type="application/json")
 
     return app
