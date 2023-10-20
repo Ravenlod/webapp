@@ -274,7 +274,6 @@ primary_button.addEventListener("click", async ()=>{
         if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
             ussd_status.innerHTML === "USSD Session State: IDLE"){
             sec_btn_container.classList.add("hidden");
-
         }
         else
         {
@@ -383,6 +382,36 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     .then(data =>{
         let ussd_status = document.querySelector(".ussd-status");
         ussd_status.textContent = "USSD Session State: " +  data['ussd_status'];
+
+        if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+            ussd_status.innerHTML === "USSD Session State: IDLE"){
+            sec_btn_container.classList.add("hidden");
+        }
+        else
+        {
+            sec_btn_container.classList.remove("hidden");
+            secondary_button.addEventListener('click', async () => {
+            data = {"data": "ussd_cancel"}
+            await fetch("/settings/ussd_request", {
+            method:"POST",
+            headers: 
+            {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),})
+        .then(response => {
+            if (response.status !== 200) 
+            {
+                console.log('Ошибка: ' + response.status);
+            }
+        return response.json();
+        })
+        .then(data => {
+            insertField.textContent = "";
+            ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+        });
+            });
+        }
     });
 
 
