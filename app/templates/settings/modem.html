@@ -127,8 +127,7 @@
                         <button class="btn btn-primary ussd-btn-primary" type="button">Отправить</button>
                     </div>
 
-                    <div id="ussd_request_hidden_button"
-                         class= "col-md-6">
+                    <div class= "col-md-6 container-btn-secondary hidden">
                         <button class="btn btn-secondary ussd-btn-secondary" type="button">Завершить сессию</button>
                     </div>
 
@@ -243,7 +242,12 @@
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
 
+let ussd_status = document.querySelector(".ussd-status");
 let primary_button = document.querySelector(".ussd-btn-primary")
+let secondary_button = document.querySelector(".ussd-btn-secondary");
+let sec_btn_container = document.querySelector(".container-btn-secondary");
+let insertField = document.querySelector(".copy_text_field");
+
 primary_button.addEventListener("click", async ()=>{
     let form = document.querySelector("#input_value");
     
@@ -263,27 +267,47 @@ primary_button.addEventListener("click", async ()=>{
       return response.json();
     })
     .then(data => {
-        console.log(data)
-        let insertField = document.querySelector(".copy_text_field");
-        insertField.textContent = data['response'];
-        let ussd_status = document.querySelector(".ussd-status");
-        ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
-    });
 
+        insertField.textContent = data['response'];
+        ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+
+        if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+            ussd_status.innerHTML === "USSD Session State: IDLE"){
+            sec_btn_container.classList.add("hidden");
+
+        }
+        else
+        {
+            sec_btn_container.classList.remove("hidden");
+            secondary_button.addEventListener('click', async () => {
+            data = {"data": "ussd_cancel"}
+            await fetch("/settings/ussd_request", {
+            method:"POST",
+            headers: 
+            {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),})
+        .then(response => {
+            if (response.status !== 200) 
+            {
+                console.log('Ошибка: ' + response.status);
+            }
+        return response.json();
+        })
+        .then(data => {
+            insertField.textContent = "";
+            ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+        });
+            });
+        }
+    });
 
 });
 
-let secondary_button = document.querySelector(".ussd-btn-secondary");
-//let input_value = document.getElementById("input_value");
 
 
-if (secondary_button != null){
-    secondary_button.addEventListener('click', () => {
-    data = {"data": "ussd_cancel"}
-    postJSON("/settings/ussd_request", data, "POST") 
-    // alert("USSD session canceled");
-    });
-}
+
 
 let stateFlag = document.querySelector('.modem_state').innerText;
 let con_switch = document.querySelector('.connection-switch');

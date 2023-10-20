@@ -272,8 +272,7 @@ def routes(bp):
 
         modem = ModemControl()
         modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-        ussd_status = modem.modem_ussd_status()
-        print(ussd_status)
+        
         if request.method == "POST":
             response = False
             input_request = request.json
@@ -287,9 +286,10 @@ def routes(bp):
                 # Можно изменить время задержки
                 time.sleep(5)
                 response = modem.modem_ussd_network_request()
+            ussd_status = modem.modem_ussd_status()
             return_data = {"response": response, 'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
         elif request.method == "GET":
-        
+            ussd_status = modem.modem_ussd_status()
             
             return_data = {'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
         
