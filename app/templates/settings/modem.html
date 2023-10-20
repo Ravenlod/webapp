@@ -113,7 +113,7 @@
 
     <div class="col md-6 mt-3">
         <div class="card">
-            <form method="POST" action="{{ url_for('settings.modem_ussd_handler') }}">
+            <form>
             <div class="card-header">
                  USSD Запрос
             </div>
@@ -124,13 +124,11 @@
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-6">
-                        <button class="btn btn-primary" type="submit">Отправить</button>
+                        <button class="btn btn-primary ussd-btn-primary" type="button">Отправить</button>
                     </div>
 
-                    <div id="ussd_request_hidden_button"
-                         class= "col-md-6 {% if not (form['ussd_status'] == 'USER RESPONSE' or form['ussd_status'] == 'ACTIVE' ) %}
-                         hidden {% endif %}">
-                        <button id="cnl-btn" class="btn btn-secondary" type="submit">Завершить сессию</button>
+                    <div class= "col-md-6 container-btn-secondary hidden">
+                        <button class="btn btn-secondary ussd-btn-secondary" type="button">Завершить сессию</button>
                     </div>
 
                 </div>
@@ -141,7 +139,7 @@
                 <div class="d-flex mt-2">
 
                     <div class="col justify-content-start align-items-start">
-                        <p>USSD Session State: {{ form['ussd_status'] | safe }}</p>
+                        <p class="ussd-status">USSD Session State: UNKNOWN</p>
                     </div>
 
                     <div class="col d-flex justify-content-md-end">
@@ -155,9 +153,7 @@
                 </div>
 
                 <div class="row justify-content-center">
-                    <pre type="text"  class="copy_text_field">
-{% if form['response'] %}{{form['response'] | safe }} {% endif %}
-                    </pre>
+                    <pre type="text"  class="copy_text_field"></pre>
                 </div>
 
             </div>
@@ -246,21 +242,77 @@
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
 
-let secondary_button = document.getElementById("cnl-btn");
-let input_value = document.getElementById("input_value");
+let ussd_status = document.querySelector(".ussd-status");
+let primary_button = document.querySelector(".ussd-btn-primary")
+let secondary_button = document.querySelector(".ussd-btn-secondary");
+let sec_btn_container = document.querySelector(".container-btn-secondary");
+let insertField = document.querySelector(".copy_text_field");
 
+primary_button.addEventListener("click", async ()=>{
+    let form = document.querySelector("#input_value");
+    
+    data = {"data": form.value};
+    await fetch("/settings/ussd_request", {
+        method:"POST",
+        headers: 
+        {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),})
+    .then(response => {
+        if (response.status !== 200) 
+        {
+            console.log('Ошибка: ' + response.status);
+        }
+      return response.json();
+    })
+    .then(data => {
 
-if (secondary_button != null){
-    secondary_button.addEventListener('click', () => {
-    input_value.value = "ussd_cancel";
-    // alert("USSD session canceled");
+        insertField.textContent = data['response'];
+        ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+
+        if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+            ussd_status.innerHTML === "USSD Session State: IDLE"){
+            sec_btn_container.classList.add("hidden");
+
+        }
+        else
+        {
+            sec_btn_container.classList.remove("hidden");
+            secondary_button.addEventListener('click', async () => {
+            data = {"data": "ussd_cancel"}
+            await fetch("/settings/ussd_request", {
+            method:"POST",
+            headers: 
+            {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),})
+        .then(response => {
+            if (response.status !== 200) 
+            {
+                console.log('Ошибка: ' + response.status);
+            }
+        return response.json();
+        })
+        .then(data => {
+            insertField.textContent = "";
+            ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+        });
+            });
+        }
     });
-}
+
+});
+
+
+
+
 
 let stateFlag = document.querySelector('.modem_state').innerText;
 let con_switch = document.querySelector('.connection-switch');
 let fast_connection_btn = document.querySelector('.fast-connection-btn');
-//let alert_banner = document.querySelector('.alert-placeholder');
+//let alert_banner = document.quelet insertField = document.querySelector(".copy_text_field");
 
 fast_connection_btn.addEventListener('click', () => {
 
@@ -269,7 +321,7 @@ fast_connection_btn.addEventListener('click', () => {
     //alert_banner.innerHTML = '';
     let message = {status: state}
     // const data = {state: state};
-    postJSON("/settings/switch", message);
+    postJSON("/settings/switch", message, 'PUT');
 
 });
 
@@ -284,7 +336,7 @@ init_connection.addEventListener('click', () => {
 
     let message = {apn: apn, ip: ip, user: user, password: password};
     console.log(message)
-    postJSON("/settings/init_connection_setup", message);
+    postJSON("/settings/init_connection_setup", message, 'PUT');
 });
 
 const eventSource = new EventSource('/settings/sse');
@@ -319,5 +371,21 @@ eventSource.onmessage = function(event) {
 
 };
 
+
+document.addEventListener("DOMContentLoaded", async ()=>{
+    await fetch("/settings/ussd_request")
+    .then(response => {
+      if (response.status !== 200) {
+          console.log('Ошибка: ' + response.status);
+        }
+      return response.json();
+    })
+    .then(data =>{
+        let ussd_status = document.querySelector(".ussd-status");
+        ussd_status.textContent = "USSD Session State: " +  data['ussd_status'];
+    });
+
+
+    });
 </script>
 {% endblock %}

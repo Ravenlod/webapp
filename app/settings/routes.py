@@ -231,8 +231,7 @@ def routes(bp):
     def sse():
         return Response(generate_event(), content_type='text/event-stream')
 
-
-    @bp.route("/init_connection_setup", methods=['POST'])
+    @bp.route("/init_connection_setup", methods=['PUT'])
     @login_required
     def init_settings_form_handler():
 
@@ -249,12 +248,10 @@ def routes(bp):
 
         session['modem_connection_config'] = conn_config_input
         modem = ModemControl()
-        connection_status = modem.modem_add_connection(conn_config_input)
-        session['current_bearer'] = connection_status
+        modem.modem_add_connection(conn_config_input)
+        return jsonify({"message": "Resource updated successfully"}), 200
 
-        return redirect(url_for('settings.modem_settings'))
-
-    @bp.route("/switch", methods=['POST'])
+    @bp.route("/switch", methods=['PUT'])
     @login_required
     def modem_connection_switch_handler():
         modem = ModemControl()
@@ -266,30 +263,40 @@ def routes(bp):
         else:
             modem_connection_config = session.get('modem_connection_config',
                                                   (modem.modem_get_init_apn(), 4, '', ''))
-            connection_status = modem.modem_add_connection(modem_connection_config)
-            session['current_bearer'] = connection_status
-        return redirect(url_for('settings.modem_settings'))
+            modem.modem_add_connection(modem_connection_config)
+        return jsonify({"message": "Resource updated successfully"}), 200
 
-    @bp.route("/ussd_request", methods=['POST'])
+    @bp.route("/ussd_request", methods=['GET','POST'])
     @login_required
     def modem_ussd_handler():
+
         modem = ModemControl()
-        input_request = request.form.get('input_form')
-        response = False
-        if input_request == 'ussd_cancel':
-            response = modem.modem_ussd_cancel()
-        elif modem.modem_ussd_status() == 1:
-            response = modem.modem_ussd_request(input_request)
-        elif modem.modem_ussd_status() == 3:
-            modem.modem_ussd_response(input_request)
-            time.sleep(5)
+        modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
+        
+        if request.method == "POST":
+            response = False
+            input_request = request.json
+            if input_request["data"] == 'ussd_cancel':
+                response = modem.modem_ussd_cancel()
+            elif modem.modem_ussd_status() == 1:
+                response = modem.modem_ussd_request(input_request["data"])
+            elif modem.modem_ussd_status() == 3:
+                modem.modem_ussd_response(input_request["data"])
 
-            # Можно изменить время задержки
-            response = modem.modem_ussd_network_request()
-        session['ussd_response'] = response
-        return redirect(url_for('settings.modem_settings'))
+                # Можно изменить время задержки
+                time.sleep(5)
+                response = modem.modem_ussd_network_request()
+            ussd_status = modem.modem_ussd_status()
+            return_data = {"response": response, 'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
+        elif request.method == "GET":
+            ussd_status = modem.modem_ussd_status()
+            
+            return_data = {'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
+        
+        # session['ussd_response'] = response
+        return jsonify(return_data), 200
 
-    @bp.route("/modem", methods=['GET', 'POST'])
+    @bp.route("/modem")
     @login_required
     def modem_settings():
         """Основная функция, связанная с URL адресом /settings/modem.
@@ -298,25 +305,16 @@ def routes(bp):
         modem = ModemControl()
         show_modem = modem.getter()
         nw_form = NetworkForm()
-        modem_code_status = modem.modem_check_state()
-        modem_status_user_friendly = (
-            'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
-            'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
-            'CONNECTED')
-        modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-        ussd_status = modem.modem_ussd_status()
+        # modem_code_status = modem.modem_check_state()
+        # modem_status_user_friendly = (
+        #     'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
+        #     'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
+        #     'CONNECTED')
 
-        response = str()
-        if 'ussd_response' in session:
-            response = session.get('ussd_response', 'Unknown Error')
-            session.pop('ussd_response')
-
-        output_form = {'modem_status': modem_status_user_friendly[modem_code_status + 1],
-                       'show_modem': show_modem,
-                       'response': response,
-                       'nw_form': nw_form,
-                       'ussd_status': modem_ussd_status_user_friendly[ussd_status],
-                       }
+        output_form = {
+            'show_modem': show_modem,
+            'nw_form': nw_form,     
+        }
 
         return render_template("/settings/modem.html",
                                form=output_form)
