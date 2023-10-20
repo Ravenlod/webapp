@@ -1,8 +1,8 @@
 
-async function postJSON(path, data) {
+async function postJSON(path, data, method) {
   try {
     const response = await fetch(String(path), {
-      method: "POST",
+      method: method,
       headers: {
         "Content-Type": "application/json",
       },
@@ -19,10 +19,10 @@ async function postJSON(path, data) {
 }
 
     //async functions
-let copy_buttons = document.getElementsByClassName('copy-btn');
+let copy_buttons = document.querySelectorAll('.copy-btn');
 
 
-Array.from(copy_buttons).forEach( (copy_btn) => {
+copy_buttons.forEach( (copy_btn) => {
 
     //let text_field = document.querySelector('#copy_text_field_' + String(copy_btn.getAttribute('value')));
     //let change_svg_btn = document.querySelector('#copy_btn_svg_'+ String(copy_btn.getAttribute('value')));

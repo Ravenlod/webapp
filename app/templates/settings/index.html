@@ -207,20 +207,20 @@
       {% for service, status in service_status %}
         <li class="list-group-item">
             <div class="row justify-content-start">
-          <div class="col">
-              {{ service }}
-          </div>
-        {% if status == 'active' %}
-            <div class="col text-end">
-              <span class="badge bg-success">Служба запущена</span>
-            </div>
-        {% else %}
-          <div class="col text-end">
-          <span class="badge bg-secondary">
-              Служба остановлена
-          </span>
-          </div>
-        {% endif %}
+                <div class="col">
+                  {{ service }}
+                </div>
+                <div class="col text-end">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-primary">Остановить</button>
+                        <button type="button" class="btn btn-primary">Отключить</button>
+                    </div>
+                {% if status == 'active' %}
+                    <span class="badge bg-success ">Служба запущена</span>
+                {% else %}
+                    <span class="badge bg-secondary ">Служба остановлена</span>
+                {% endif %}
+                </div>
             </div>
         </li>
       {% endfor %}
