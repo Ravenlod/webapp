@@ -211,14 +211,18 @@
                   {{ service }}
                 </div>
                 <div class="col text-end">
-                    <div class="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-primary btn-sm">Остановить</button>
-                        <button type="button" class="btn btn-primary btn-sm">Отключить</button>
-                    </div>
                 {% if status == 'active' %}
-                    <span class="badge bg-success ">Служба запущена</span>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                  <button type="button" class="service-status-btn btn btn-primary btn-sm">Остановить</button>
+                  <button type="button" class="service-preset-btn btn btn-primary btn-sm">Отключить</button>
+                </div>
+                <span class="badge bg-success ">Служба запущена</span>
                 {% else %}
-                    <span class="badge bg-secondary ">Служба остановлена</span>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                  <button type="button" class="service-status-btn btn btn-primary btn-sm">Запустить</button>
+                  <button type="button" class="service-preset-btn btn btn-primary btn-sm">Включить</button>
+                </div>
+                <span class="badge bg-secondary ">Служба остановлена</span>
                 {% endif %}
                 </div>
             </div>
@@ -227,5 +231,12 @@
   </ul>
 </div>
 <br>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+</script>
 
 {% endblock %}
