@@ -34,9 +34,9 @@
                   <p>Если вы соглашаетесь, то эти данные будут утеряны навсегда!</p>
               </div>
               <div class="modal-footer">
-                  <a class="float-end" href="{{ url_for('settings.index', dbclean='y') }}">
-                    <button type="button" class="btn btn-danger">Да</button>
-                  </a>
+
+                    <button type="button" class="db-clean-btn btn btn-danger">Да</button>
+
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
               </div>
             </div>
@@ -62,9 +62,9 @@
                       <p>Перезагрузить устройство ?</p>
                   </div>
                   <div class="modal-footer">
-                      <a class="float-end" href="{{ url_for('settings.index', reboot='y') }}">
-                        <button type="button" class="btn btn-danger">Да</button>
-                      </a>
+
+                        <button type="button" class="reboot-btn btn btn-danger">Да</button>
+
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -87,9 +87,9 @@
                       <p>Выключить устройство ?</p>
                   </div>
                   <div class="modal-footer">
-                      <a class="float-end" href="{{ url_for('settings.index', poweroff='y') }}">
-                        <button type="button" class="btn btn-danger">Да</button>
-                      </a>
+
+                        <button type="button" class="poweroff-btn btn btn-danger">Да</button>
+
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -137,9 +137,9 @@
                       <p> Подтвердите еще раз, что желаете удалить все данные:</p>
                   </div>
                   <div class="modal-footer">
-                      <a class="float-end" href="{{ url_for('settings.index', soft_reset='y') }}">
-                        <button type="button" class="btn btn-danger">Да</button>
-                      </a>
+
+                        <button type="button" class="soft-reset-btn btn btn-danger">Да</button>
+
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -174,9 +174,9 @@
                   <p><small class="text-body-secondary">*Для работы данной функции требуется доступ в интернет</small></p>
               </div>
               <div class="modal-footer">
-                  <a class="float-end" href="{{ url_for('settings.index', tzauto='y') }}">
-                    <button type="button" class="btn btn-danger">Да</button>
-                  </a>
+
+                    <button type="button" class="tzauto-btn btn btn-danger">Да</button>
+
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
               </div>
             </div>
@@ -235,7 +235,61 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/select_options_button_handler.js"></script>
 <script>
+
+let db_clean = document.querySelector('.db-clean-btn');
+if(db_clean)
+{
+  db_clean.addEventListener('click', ()=>
+  {
+    data = {name: "index-msg", data: "db-clean"};
+    postJSON('/settings/create', data, "POST");
+  });
+}
+
+let tzauto = document.querySelector('.tzauto-btn');
+if(tzauto)
+{
+  tzauto.addEventListener('click', ()=>
+  {
+    data = {name: "index-msg", data: "tzauto"};
+    postJSON('/settings/create', data, "POST");
+  });
+}
+
+
+let reboot = document.querySelector('.reboot-btn');
+if(reboot)
+{
+  reboot.addEventListener('click', ()=>
+  {
+    data = {name: "index-msg", data: "reboot"};
+    postJSON('/settings/create', data, "POST");
+  });
+}
+
+
+let poweroff = document.querySelector('.poweroff-btn');
+if(poweroff)
+{
+  poweroff.addEventListener('click', ()=>
+  {
+    data = {name: "index-msg", data: "poweroff"};
+    postJSON('/settings/create', data, "POST");
+  });
+}
+
+let soft_reset = document.querySelector('.soft-reset-btn');
+if(soft_reset)
+{
+  soft_reset.addEventListener('click', ()=>
+  {
+    data = {name: "index-msg", data: "soft-reset"};
+    postJSON('/settings/create', data, "POST");
+  });
+}
+
 
 </script>
 

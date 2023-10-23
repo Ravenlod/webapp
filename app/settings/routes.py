@@ -29,6 +29,7 @@ def routes(bp):
         db = str(db_size())
 
         service_status = []
+
         if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
             service_list = [
                 'systemd-networkd',
@@ -60,43 +61,7 @@ def routes(bp):
                 service_status.append((name, status))
         else:
             flash('Тут нет Systemd 😱')
-
-        # Deleting data in the 'wal' and 'date' folders, influxdb2 databases
-        db_cln = request.args.get('dbclean')
-
-        if request.method == 'GET' and db_cln == 'y':
-            db_clean()
-            return redirect(request.referrer)
-
-        # Automatic set timezone after click in the button and if internet as exist
-        tz_auto = request.args.get('tzauto')
-
-        if request.method == 'GET' and tz_auto == 'y':
-            sys_auto_timezone()
-            return redirect(request.referrer)
-
-        # System reboot
-        reboot = request.args.get('reboot')
-
-        if request.method == 'GET' and reboot == 'y':
-            sys_soft_reset()
-            sys_reboot()
-            return redirect(request.referrer)
-
-        # System poweroff
-        poweroff = request.args.get('poweroff')
-
-        if request.method == 'GET' and poweroff == 'y':
-            sys_poweroff()
-            return redirect(request.referrer)
-
-        # System overlay reset
-        soft_reset = request.args.get('soft_reset')
-
-        if request.method == 'GET' and soft_reset == 'y':
-            sys_soft_reset()
-            sys_reboot()
-            return redirect(request.referrer)
+        
 
         return render_template(
             'settings/index.html',
@@ -109,6 +74,97 @@ def routes(bp):
             db=db,
         )
 
+    @bp.route("/create", methods=['POST'])
+    @login_required
+    def create_handler():
+        config = request.json
+        if not config or not 'name' in config:
+            abort(400)
+        else:
+            if config['name'] == "ussd-request":
+                modem = ModemControl()
+                modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
+                response = False
+                input_request = request.json
+
+                if input_request["data"] == 'ussd_cancel':
+                    response = modem.modem_ussd_cancel()
+                elif modem.modem_ussd_status() == 1:
+                    response = modem.modem_ussd_request(input_request["data"])
+                elif modem.modem_ussd_status() == 3:
+                    modem.modem_ussd_response(input_request["data"])
+
+                    # Можно изменить время задержки
+                    time.sleep(5)
+                    response = modem.modem_ussd_network_request()
+
+                ussd_status = modem.modem_ussd_status()
+                return_data = {"response": response, 'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
+            elif config['name'] == "index-msg":
+                if config['data'] == 'db-clean':
+                    db_clean()
+                    return_data = {"response": "DB Cleaned"}
+
+                elif config['data'] == "tzauto":
+                    sys_auto_timezone()
+                    return_data = {"response": "Timezone set"}
+
+                elif config['data'] == "reboot":
+                    sys_reboot()
+                    return_data = {"response": "Reboot confirmed"}
+
+                elif config['data'] == "poweroff":
+                    sys_poweroff()
+                    return_data = {"response": "Poweroff confirmed"}
+
+                elif config['data'] == "soft-reset":
+                    sys_soft_reset()
+                    sys_reboot()
+                    return_data = {"response": "Soft reset confirmed"}
+
+        return jsonify(return_data), 200
+
+    @bp.route("/update", methods=['PUT'])
+    @login_required
+
+    def update_handler():
+        config = request.json
+        if not config or not 'name' in config:
+            abort(400)
+        else:
+            if config['name'] == "connection-switch":
+                modem = ModemControl()
+                con_status = request.json
+                state = con_status.get('status')
+
+                if state:
+                    modem.modem_delete_connection()
+                else:
+                    modem_connection_config = session.get('modem_connection_config',
+                                                        (modem.modem_get_init_apn(), 4, '', ''))
+                    modem.modem_add_connection(modem_connection_config)
+
+            elif config['name'] == "connection-form":
+                apn_info = config['apn']
+                ip_info = int(config['ip'])
+                user_info = config["user"]
+                password_info = config["password"]
+                conn_config_input = (apn_info, ip_info, user_info, password_info)
+
+                if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
+                    conn_config_input = ('internet', ip_info, '', '')
+
+                session['modem_connection_config'] = conn_config_input
+                modem = ModemControl()
+                modem.modem_add_connection(conn_config_input)
+
+            elif config['name'] == "service-status":
+                pass
+            elif config['name'] == "service-preset":
+                pass
+        
+        return jsonify({"message": "Resource updated successfully"}), 200
+    
     @bp.route('/lora', methods=['GET', 'POST'])
     @login_required
     def lora_settings():
@@ -231,70 +287,6 @@ def routes(bp):
     def sse():
         return Response(generate_event(), content_type='text/event-stream')
 
-    @bp.route("/create", methods=['POST'])
-    @login_required
-    def create_handler():
-        config = request.json
-        if not config or not 'name' in config:
-            abort(400)
-        else:
-            if config['name'] == "ussd-request":
-
-                modem = ModemControl()
-                modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-                response = False
-                input_request = request.json
-
-                if input_request["data"] == 'ussd_cancel':
-                    response = modem.modem_ussd_cancel()
-                elif modem.modem_ussd_status() == 1:
-                    response = modem.modem_ussd_request(input_request["data"])
-                elif modem.modem_ussd_status() == 3:
-                    modem.modem_ussd_response(input_request["data"])
-
-                    # Можно изменить время задержки
-                    time.sleep(5)
-                    response = modem.modem_ussd_network_request()
-
-                ussd_status = modem.modem_ussd_status()
-                return_data = {"response": response, 'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
-            
-        return jsonify(return_data), 200
-
-    @bp.route("/update", methods=['PUT'])
-    @login_required
-
-    def update_handler():
-        config = request.json
-        if not config or not 'name' in config:
-            abort(400)
-        else:
-            if config['name'] == "connection-switch":
-                modem = ModemControl()
-                con_status = request.json
-                state = con_status.get('status')
-
-                if state:
-                    modem.modem_delete_connection()
-                else:
-                    modem_connection_config = session.get('modem_connection_config',
-                                                        (modem.modem_get_init_apn(), 4, '', ''))
-                    modem.modem_add_connection(modem_connection_config)
-
-            elif config['name'] == "connection-form":
-                apn_info = config['apn']
-                ip_info = int(config['ip'])
-                user_info = config["user"]
-                password_info = config["password"]
-                conn_config_input = (apn_info, ip_info, user_info, password_info)
-
-                if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
-                    conn_config_input = ('internet', ip_info, '', '')
-
-                session['modem_connection_config'] = conn_config_input
-                modem = ModemControl()
-                modem.modem_add_connection(conn_config_input)
-        return jsonify({"message": "Resource updated successfully"}), 200
 
     @bp.route("/ussd_request", methods=['GET'])
     @login_required
