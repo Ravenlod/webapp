@@ -28,6 +28,22 @@ def routes(bp):
         disk = str(sys_disk())
         db = str(db_size())
 
+        
+        
+
+        return render_template(
+            'settings/index.html',
+            uptime=uptime,
+            date=date,
+            ram=ram,
+            cpu_avg=cpu_avg,
+            disk=disk,
+            db=db,
+        )
+
+    @bp.route("/service-list", methods=["GET"])
+    @login_required
+    def service_list():
         service_status = []
 
         if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
@@ -61,18 +77,8 @@ def routes(bp):
                 service_status.append((name, status))
         else:
             flash('Тут нет Systemd 😱')
-        
 
-        return render_template(
-            'settings/index.html',
-            uptime=uptime,
-            date=date,
-            ram=ram,
-            cpu_avg=cpu_avg,
-            disk=disk,
-            service_status=service_status,
-            db=db,
-        )
+        return jsonify({"data": service_status})
 
     @bp.route("/create", methods=['POST'])
     @login_required

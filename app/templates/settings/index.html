@@ -203,31 +203,8 @@
     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-list-task">
       </use></svg>Системные службы
   </div>
-  <ul class="list-group list-group-flush">
-      {% for service, status in service_status %}
-        <li class="list-group-item">
-            <div class="row justify-content-start">
-                <div class="col">
-                  {{ service }}
-                </div>
-                <div class="col text-end">
-                {% if status == 'active' %}
-                <div class="btn-group" role="group" aria-label="Basic example">
-                  <button type="button" class="service-status-btn btn btn-primary btn-sm">Остановить</button>
-                  <button type="button" class="service-preset-btn btn btn-primary btn-sm">Отключить</button>
-                </div>
-                <span class="badge bg-success ">Служба запущена</span>
-                {% else %}
-                <div class="btn-group" role="group" aria-label="Basic example">
-                  <button type="button" class="service-status-btn btn btn-primary btn-sm">Запустить</button>
-                  <button type="button" class="service-preset-btn btn btn-primary btn-sm">Включить</button>
-                </div>
-                <span class="badge bg-secondary ">Служба остановлена</span>
-                {% endif %}
-                </div>
-            </div>
-        </li>
-      {% endfor %}
+  <ul class="service-list-view list-group list-group-flush">
+      
   </ul>
 </div>
 <br>
@@ -237,6 +214,42 @@
 {% block scripts %}
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
+
+let service_list = document.querySelector('.service-list-view');
+document.addEventListener("DOMContentLoaded", async ()=>{
+    //Fetch data from the server
+    await fetch("/settings/service-list")
+    .then(response => 
+    {
+      //Check if the response is not equal to 200
+      if (response.status !== 200) 
+      {
+        console.log('Ошибка: ' + response.status);
+      }
+      //Return the response as a JSON
+      return response.json();
+    })
+    .then(data =>
+    {
+      console.log(data['data']);
+      data['data'].forEach(element => {
+        service_list.innerHTML += 
+        `<li class="list-group-item"><div class="row justify-content-start">
+
+          <div class="col">
+            ${element[0]}
+          </div>
+          <div class="col text-end">
+            ${(element[1] === "active") ? `
+                <span class="badge bg-success ">Служба запущена</span>` :
+                `
+                <span class="badge bg-danger">Служба остановлена</span>`
+              }
+          </div>
+        </div></li>`
+      });
+    });
+  });
 
 let db_clean = document.querySelector('.db-clean-btn');
 if(db_clean)
