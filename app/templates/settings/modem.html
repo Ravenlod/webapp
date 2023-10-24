@@ -252,61 +252,30 @@ primary_button.addEventListener("click", async ()=>
     let form = document.querySelector("#input_value");
     
     data = {name: "ussd-request", data: form.value};
-    await fetch("/settings/create", {
-        method:"POST",
-        headers: 
-        {
-        "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),})
-    .then(response => {
-        if (response.status !== 200) 
-        {
-            console.log('Ошибка: ' + response.status);
-        }
-      return response.json();
-    })
-    .then(data => {
+    returnData = await postJSON("/settings/create", "POST", data);
 
-        insertField.textContent = data['response'];
-        ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+    insertField.textContent = returnData['response'];
+    ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
 
-        if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
-            ussd_status.innerHTML === "USSD Session State: IDLE"){
+    if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+        ussd_status.innerHTML === "USSD Session State: IDLE")
+    {
+        sec_btn_container.classList.add("hidden");
+    }
+    else
+    {
+        sec_btn_container.classList.remove("hidden");
+        secondary_button.addEventListener('click', async () => 
+        {
+            data = {name: "ussd-request", data: "ussd_cancel"}
+
+            returnData = await postJSON("/settings/create", "POST", data);
+            insertField.textContent = "";
+            ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
             sec_btn_container.classList.add("hidden");
-        }
-        else
-        {
-            sec_btn_container.classList.remove("hidden");
-            secondary_button.addEventListener('click', async () => 
-            {
-                data = {name: "ussd-request", data: "ussd_cancel"}
-                await fetch("/settings/create", {
-                method:"POST",
-                headers: 
-                {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),})
-                .then(response => 
-                {
-                    if (response.status !== 200) 
-                    {
-                        console.log('Ошибка: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => 
-                {
-                    insertField.textContent = "";
-                    ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
-                });
-            });
-        }
-    });
-
+        });
+    }
 });
-
 
 
 
@@ -320,7 +289,7 @@ fast_connection_btn.addEventListener('click', () => {
     let state = !con_switch.checked;
 
     let message = {name: "connection-switch", status: state}
-    postJSON("/settings/update", message, 'PUT');
+    postJSON("/settings/update", 'PUT', message);
 
 });
 
@@ -337,7 +306,7 @@ init_connection.addEventListener('click', () => {
     let message = {name: "connection-form", apn: apn, ip: ip, user: user, password: password};
     // console.log(message)
     // Send the message to the server
-    postJSON("/settings/update", message, 'PUT');
+    postJSON("/settings/update", 'PUT', message);
 });
 
 const eventSource = new EventSource('/settings/sse');
@@ -382,65 +351,42 @@ eventSource.onmessage = function(event) {
 
 };
 
-document.addEventListener("DOMContentLoaded", async ()=>{
+document.addEventListener("DOMContentLoaded", async ()=>
+{
     //Fetch data from the server
-    await fetch("/settings/ussd_request")
-    .then(response => {
-      //Check if the response is not equal to 200
-      if (response.status !== 200) {
-          console.log('Ошибка: ' + response.status);
-        }
-      //Return the response as a JSON
-      return response.json();
-    })
-    .then(data =>{
-        //Select the element with the class "ussd-status"
-        let ussd_status = document.querySelector(".ussd-status");
-        //Set the text content of the element to the data from the server
-        ussd_status.textContent = "USSD Session State: " +  data['ussd_status'];
+    returnData = await postJSON("/settings/ussd_request", "GET");
 
-        //Check if the status is "UNKNOWN" or "IDLE"
-        if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
-            ussd_status.innerHTML === "USSD Session State: IDLE"){
-            //Hide the secondary button container
-            sec_btn_container.classList.add("hidden");
-        }
-        else
+    //Select the element with the class "ussd-status"
+    let ussd_status = document.querySelector(".ussd-status");
+    //Set the text content of the element to the data from the server
+    ussd_status.textContent = "USSD Session State: " +  returnData['ussd_status'];
+
+    //Check if the status is "UNKNOWN" or "IDLE"
+    if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+        ussd_status.innerHTML === "USSD Session State: IDLE"){
+        //Hide the secondary button container
+        sec_btn_container.classList.add("hidden");
+    }
+    else
+    {
+        //Show the secondary button container
+        sec_btn_container.classList.remove("hidden");
+        //Add an event listener to the secondary button
+        secondary_button.addEventListener('click', async () => 
         {
-            //Show the secondary button container
-            sec_btn_container.classList.remove("hidden");
-            //Add an event listener to the secondary button
-            secondary_button.addEventListener('click', async () => {
             //Create an object with the data to be sent to the server
             data = {name: "ussd-request", data: "ussd_cancel"}
             //Send the data to the server
-            await fetch("/settings/create", {
-            method:"POST",
-            headers: 
-            {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),})
-            .then(response => {
-                //Check if the response is not equal to 200
-                if (response.status !== 200) 
-                {
-                    console.log('Ошибка: ' + response.status);
-                }
-            //Return the response as a JSON
-            return response.json();
-            })
-            //Set the text content of the element to the data from the server
-            .then(data => {
-                insertField.textContent = "";
-                ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
-            });
-            });
-        }
-    });
+            returnData = await postJSON("/settings/ussd_request", "POST", data);
 
+            insertField.textContent = "";
+            ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
+            sec_btn_container.classList.add("hidden");
+        
+        });
+    }
 
-    });
+});
 
 
 </script>

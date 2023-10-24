@@ -1,18 +1,34 @@
 
-async function postJSON(path, data, method) {
-  try {
+async function postJSON(path, method, data = null) {
+  returnData = null
+  try 
+  {
     const response = await fetch(String(path), {
       method: method,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: (data !== null) ? JSON.stringify(data): undefined,
     })
-    .catch(error => {
-      console.error("Error:", error);})
-  } catch (error) {
+    .then(response => 
+    {
+      if (response.status !== 200) 
+      {
+          console.log('Ошибка: ' + response.status);
+      }
+    return response.json();
+    })
+    .then(data => 
+    {
+      returnData = data;
+    })
+    return returnData;
+  } 
+  catch (error) 
+  {
     console.error("Error:", error);
   }
+
 }
 
 let copy_buttons = document.querySelectorAll('.copy-btn');

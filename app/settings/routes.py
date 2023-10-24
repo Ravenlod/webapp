@@ -28,9 +28,6 @@ def routes(bp):
         disk = str(sys_disk())
         db = str(db_size())
 
-        
-        
-
         return render_template(
             'settings/index.html',
             uptime=uptime,
@@ -70,11 +67,15 @@ def routes(bp):
 
             for s in service_installed:
                 name = str(s).split(".")[0]
-                status = subprocess.check_output(f"systemctl show -p ActiveState --value {name}",
+                is_active = subprocess.check_output(f"systemctl show -p ActiveState --value {name}",
                                                  universal_newlines=True,
                                                  shell=True)
-                status = str(status).split("\n")[0]
-                service_status.append((name, status))
+                is_active = str(is_active).split("\n")[0]
+                is_enabled = subprocess.check_output(f"systemctl show -p UnitFileState --value {name}",
+                                                 universal_newlines=True,
+                                                 shell=True)
+                is_enabled = str(is_enabled).split("\n")[0]
+                service_status.append((name, is_active, is_enabled))
         else:
             flash('Тут нет Systemd 😱')
 

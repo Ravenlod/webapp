@@ -21,7 +21,7 @@
             <svg class="bi opacity-75 theme-icon"><use href="#bi-trash3-fill"></use></svg>
         </button>
         <!-- modal -->
-        <div class="modal fade" id="cleaDB" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        <div class="modal fade" id="cleaDB" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
              aria-labelledby="staticBackdropLabel" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -161,7 +161,7 @@
             <svg class="bi opacity-75 theme-icon"><use href="#bi-clock"></use></svg>
         </button>
         <!-- modal -->
-        <div class="modal fade" id="tzauto" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        <div class="modal fade" id="tzauto" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
              aria-labelledby="tzautoLabel" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -216,58 +216,63 @@
 <script>
 
 let service_list = document.querySelector('.service-list-view');
-document.addEventListener("DOMContentLoaded", async ()=>{
-    //Fetch data from the server
-    await fetch("/settings/service-list")
-    .then(response => 
-    {
-      //Check if the response is not equal to 200
-      if (response.status !== 200) 
-      {
-        console.log('Ошибка: ' + response.status);
-      }
-      //Return the response as a JSON
-      return response.json();
-    })
-    .then(data =>
-    {
-      console.log(data['data']);
-      data['data'].forEach(element => {
-        service_list.innerHTML += 
-        `<li class="list-group-item"><div class="row justify-content-start">
+document.addEventListener("DOMContentLoaded", async ()=>
+{
+  //Fetch data from the server
+  returnData = await postJSON("/settings/service-list", "GET")
+  returnData['data'].forEach(element => 
+  {
+    service_list.innerHTML += 
+    `<li class="list-group-item"><div class="row justify-content-start">
 
-          <div class="col">
-            ${element[0]}
-          </div>
-          <div class="col text-end">
-            ${(element[1] === "active") ? `
-                <span class="badge bg-success ">Служба запущена</span>` :
-                `
-                <span class="badge bg-danger">Служба остановлена</span>`
-              }
-          </div>
-        </div></li>`
-      });
-    });
+      <div class="col">
+        ${element[0]}
+      </div>
+      <div class="col text-end">
+        <div class="btn-group" role="group" aria-label="Service Control">
+        ${(element[1] === "active") ? `
+        <button type="button" class="service-status-btn btn btn-success btn-sm">Active</button>` :
+            `
+        <button type="button" class="service-status-btn btn btn-danger btn-sm">Inactive</button>`
+          }
+        ${(element[2] === "enabled") ? `
+        <button type="button" class="service-preset-btn btn btn-success btn-sm">Enabled</button>` :
+            `
+        <button type="button" class="service-preset-btn btn btn-danger btn-sm">Disabled</button>`
+          }
+        </div>
+      </div>
+    </div></li>`
   });
+});
+
+let service_status = document.querySelector('.service-status-btn');
+if(service_status)
+{
+  service_status.addEventListener('click', ()=>
+  {
+    data = {name: "index-msg", data: "service-status"}
+  })
+}
 
 let db_clean = document.querySelector('.db-clean-btn');
 if(db_clean)
 {
-  db_clean.addEventListener('click', ()=>
+  db_clean.addEventListener('click', async ()=>
   {
     data = {name: "index-msg", data: "db-clean"};
-    postJSON('/settings/create', data, "POST");
+    response = await postJSON('/settings/create', "POST", data );
   });
 }
 
 let tzauto = document.querySelector('.tzauto-btn');
 if(tzauto)
 {
-  tzauto.addEventListener('click', ()=>
+  tzauto.addEventListener('click', async ()=>
   {
     data = {name: "index-msg", data: "tzauto"};
-    postJSON('/settings/create', data, "POST");
+    response = await postJSON('/settings/create', "POST", data );
+    alert(response['response'])
   });
 }
 
@@ -275,10 +280,11 @@ if(tzauto)
 let reboot = document.querySelector('.reboot-btn');
 if(reboot)
 {
-  reboot.addEventListener('click', ()=>
+  reboot.addEventListener('click', async ()=>
   {
     data = {name: "index-msg", data: "reboot"};
-    postJSON('/settings/create', data, "POST");
+    response = await postJSON('/settings/create', "POST", data );
+    alert(response['response'])
   });
 }
 
@@ -286,20 +292,20 @@ if(reboot)
 let poweroff = document.querySelector('.poweroff-btn');
 if(poweroff)
 {
-  poweroff.addEventListener('click', ()=>
+  poweroff.addEventListener('click', async ()=>
   {
     data = {name: "index-msg", data: "poweroff"};
-    postJSON('/settings/create', data, "POST");
+    response = await postJSON('/settings/create', "POST", data );
   });
 }
 
 let soft_reset = document.querySelector('.soft-reset-btn');
 if(soft_reset)
 {
-  soft_reset.addEventListener('click', ()=>
+  soft_reset.addEventListener('click', async ()=>
   {
     data = {name: "index-msg", data: "soft-reset"};
-    postJSON('/settings/create', data, "POST");
+    response = await postJSON('/settings/create', "POST", data );
   });
 }
 
