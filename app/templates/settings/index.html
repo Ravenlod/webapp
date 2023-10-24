@@ -35,7 +35,7 @@
               </div>
               <div class="modal-footer">
 
-                    <button type="button" class="db-clean-btn btn btn-danger">Да</button>
+                    <button type="button" name="db-clean" class="interact-btn btn btn-danger">Да</button>
 
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
               </div>
@@ -63,7 +63,7 @@
                   </div>
                   <div class="modal-footer">
 
-                        <button type="button" class="reboot-btn btn btn-danger">Да</button>
+                        <button type="button" name="reboot" class="interact-btn btn btn-danger">Да</button>
 
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
@@ -88,7 +88,7 @@
                   </div>
                   <div class="modal-footer">
 
-                        <button type="button" class="poweroff-btn btn btn-danger">Да</button>
+                        <button type="button" name="poweroff" class="interact-btn btn btn-danger">Да</button>
 
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
@@ -138,7 +138,7 @@
                   </div>
                   <div class="modal-footer">
 
-                        <button type="button" class="soft-reset-btn btn btn-danger">Да</button>
+                        <button type="button" name="soft-reset" class="interact-btn btn btn-danger">Да</button>
 
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
@@ -175,7 +175,7 @@
               </div>
               <div class="modal-footer">
 
-                    <button type="button" class="tzauto-btn btn btn-danger">Да</button>
+                    <button type="button" name="tzauto" class="interact-btn btn btn-danger">Да</button>
 
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
               </div>
@@ -207,6 +207,23 @@
       
   </ul>
 </div>
+
+<div class="modal fade service-confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <p> Подтвердите, что действительно хотите продолжить: </p>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="service-confirm-btn btn btn-primary">Подтвердить</button>
+          <button type="button" class="service-cancel-btn btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
 <br>
 
 {% endblock %}
@@ -214,6 +231,8 @@
 {% block scripts %}
 <script src="/static/js/select_options_button_handler.js"></script>
 <script>
+
+serverResponse = null;
 
 let service_list = document.querySelector('.service-list-view');
 document.addEventListener("DOMContentLoaded", async ()=>
@@ -231,83 +250,102 @@ document.addEventListener("DOMContentLoaded", async ()=>
       <div class="col text-end">
         <div class="btn-group" role="group" aria-label="Service Control">
         ${(element[1] === "active") ? `
-        <button type="button" class="service-status-btn btn btn-success btn-sm">Active</button>` :
+        <button type="button" class="service-status-btn btn btn-success btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Active</button>` :
             `
-        <button type="button" class="service-status-btn btn btn-danger btn-sm">Inactive</button>`
+        <button type="button" class="service-status-btn btn btn-danger btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Inactive</button>`
           }
         ${(element[2] === "enabled") ? `
-        <button type="button" class="service-preset-btn btn btn-success btn-sm">Enabled</button>` :
+        <button type="button" class="service-preset-btn btn btn-success btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Enabled</button>` :
             `
-        <button type="button" class="service-preset-btn btn btn-danger btn-sm">Disabled</button>`
+        <button type="button" class="service-preset-btn btn btn-danger btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Disabled</button>`
           }
         </div>
       </div>
     </div></li>`
   });
+
+  let service_status_list = document.querySelectorAll('.service-status-btn');
+  let service_preset_list = document.querySelectorAll('.service-preset-btn');
+  let service_confirm = document.querySelector('.service-confirm-btn');
+  let service_cancel = document.querySelector('.service-cancel-btn');
+
+
+  async function outer()
+  {
+    async function putToServer(data, button, option)
+    {
+      let returnData = await postJSON('/settings/update', "PUT", data);
+      if(option === "service_status")
+      {
+        button.innerHTML = (button.innerHTML === "Active") ? "Inactive" : "Active";
+      }
+      else if(option === "service_preset")
+      {
+        button.innerHTML = (button.innerHTML === "Enabled") ? "Disabled" : "Enabled";
+      }
+      button.classList.toggle('btn-success');
+      button.classList.toggle('btn-danger');
+      return returnData;
+    }
+    serverResponse = putToServer(data, currentButton, currentOption)
+  }
+
+  service_status_list.forEach((service_status, index)=>
+  {
+    service_status.addEventListener('click', async ()=>
+    {
+      data = {name: "service-status", data: [index, service_status.innerHTML]}
+      
+      //Глобальная переменная для хранения текущей кнопки
+      currentButton = service_status;
+      currentOption = "service_status";
+
+      service_confirm.addEventListener('click', outer);
+      
+      service_cancel.addEventListener('click', () =>
+      {
+        service_confirm.removeEventListener('click', outer);
+      });
+    });
+  });
+
+  service_preset_list.forEach((service_preset, index)=>
+  {
+    service_preset.addEventListener('click', async ()=>
+    {
+      data = {name: "service-preset", data: [index, service_preset.innerHTML]}
+      
+      //Глобальная переменная для хранения текущей кнопки
+      currentButton = service_preset;
+      currentOption = "service_preset";
+
+      service_confirm.addEventListener('click', outer);
+      
+      service_cancel.addEventListener('click', () =>
+      {
+        service_confirm.removeEventListener('click', outer);
+      });
+    });
+  });
+
 });
 
-let service_status = document.querySelector('.service-status-btn');
-if(service_status)
-{
-  service_status.addEventListener('click', ()=>
-  {
-    data = {name: "index-msg", data: "service-status"}
-  })
-}
 
-let db_clean = document.querySelector('.db-clean-btn');
-if(db_clean)
+
+let interact_buttons = document.querySelectorAll('.interact-btn');
+interact_buttons.forEach(async (button)=> 
 {
-  db_clean.addEventListener('click', async ()=>
+  button.addEventListener('click', async()=>
   {
-    data = {name: "index-msg", data: "db-clean"};
-    response = await postJSON('/settings/create', "POST", data );
+    data = {name: "index-msg", data: button.getAttribute('name')};
+    let response = await postJSON('/settings/create', "POST", data );
   });
-}
 
-let tzauto = document.querySelector('.tzauto-btn');
-if(tzauto)
-{
-  tzauto.addEventListener('click', async ()=>
-  {
-    data = {name: "index-msg", data: "tzauto"};
-    response = await postJSON('/settings/create', "POST", data );
-    alert(response['response'])
-  });
-}
-
-
-let reboot = document.querySelector('.reboot-btn');
-if(reboot)
-{
-  reboot.addEventListener('click', async ()=>
-  {
-    data = {name: "index-msg", data: "reboot"};
-    response = await postJSON('/settings/create', "POST", data );
-    alert(response['response'])
-  });
-}
-
-
-let poweroff = document.querySelector('.poweroff-btn');
-if(poweroff)
-{
-  poweroff.addEventListener('click', async ()=>
-  {
-    data = {name: "index-msg", data: "poweroff"};
-    response = await postJSON('/settings/create', "POST", data );
-  });
-}
-
-let soft_reset = document.querySelector('.soft-reset-btn');
-if(soft_reset)
-{
-  soft_reset.addEventListener('click', async ()=>
-  {
-    data = {name: "index-msg", data: "soft-reset"};
-    response = await postJSON('/settings/create', "POST", data );
-  });
-}
+});
 
 
 </script>

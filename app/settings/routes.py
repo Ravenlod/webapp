@@ -166,9 +166,62 @@ def routes(bp):
                 modem.modem_add_connection(conn_config_input)
 
             elif config['name'] == "service-status":
-                pass
+                if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
+                    service_list = [
+                        'systemd-networkd',
+                        'systemd-resolved',
+                        'telegraf',
+                        'lorabridge',
+                        'mosquitto',
+                        'grafana-server',
+                        'influxdb',
+                        'swupdate',
+                    ]
+                    service_installed = []
+
+                    # Check installed service status
+                    for i in service_list:
+                        try:
+                            name = str(i).split(".")[0]
+                            subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
+                            service_installed.append(name)
+                        except subprocess.CalledProcessError:
+                            pass
+                            # return jsonify({"message": "Service not found"}), 404
+
+                    if config['data'][1] == "Active":        
+                        sys_service_manage(service_installed[int(config['data'][0])], "stop")
+                    else:
+                        sys_service_manage(service_installed[int(config['data'][0])], "start")
+
             elif config['name'] == "service-preset":
-                pass
+                if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
+                    service_list = [
+                        'systemd-networkd',
+                        'systemd-resolved',
+                        'telegraf',
+                        'lorabridge',
+                        'mosquitto',
+                        'grafana-server',
+                        'influxdb',
+                        'swupdate',
+                    ]
+                    service_installed = []
+
+                    # Check installed service status
+                    for i in service_list:
+                        try:
+                            name = str(i).split(".")[0]
+                            subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
+                            service_installed.append(name)
+                        except subprocess.CalledProcessError:
+                            pass
+                            # return jsonify({"message": "Service not found"}), 404
+
+                    if config['data'][1] == "Enabled":        
+                        sys_service_manage(service_installed[int(config['data'][0])], "disable")
+                    else:
+                        sys_service_manage(service_installed[int(config['data'][0])], "enable")
         
         return jsonify({"message": "Resource updated successfully"}), 200
     
