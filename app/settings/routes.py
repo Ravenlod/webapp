@@ -363,9 +363,7 @@ def routes(bp):
     @bp.route("/modem")
     @login_required
     def modem_settings():
-        """Основная функция, связанная с URL адресом /settings/modem.
-        Возвращает информацию о модеме, ответы в интерактивном поле запросов и булеан Истина. Также
-        возвращает информацию о подключении."""
+        """Основная функция, связанная с URL адресом /settings/modem."""
         modem = ModemControl()
         show_modem = modem.getter()
         output_form = {

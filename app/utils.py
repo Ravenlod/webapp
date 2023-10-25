@@ -377,7 +377,9 @@ def generate_event():
                 i = 0
                 line_list = config.readlines()
                 for line in line_list:
-                    if name_prop_list[i] in line:
+                    if line[0] == "#":
+                        continue
+                    elif name_prop_list[i] in line:
                         # print(line, line.split('='))
                         pulled_config.append(line.split('=')[1][:-1])
                         if i == len(name_prop_list) - 1:
@@ -455,7 +457,9 @@ def sys_change_config_file(file_path: str, name_prop_list: tuple, input_list: li
         i = 0
         line_list = config.readlines()
         for index, line in enumerate(line_list):
-            if name_prop_list[i] in line:
+            if line[0] == "#":
+                continue
+            elif name_prop_list[i] in line:
                 # print(line, i)
                 line_list[index] = str(name_prop_list[i]) + '=' + str(input_list[i]) + '\n'
                 if i == len(name_prop_list) - 1:
