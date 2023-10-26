@@ -36,7 +36,7 @@ class ModemControl:
 
     @staticmethod
     def modem_add_connection(config_input: tuple[str, int, str, str]):
-        config_path = "/etc/modem/modem.conf"
+        config_path = "/etc/napiconfig/modem.conf"
         service_name = "modem-connection-control"
         config_vars = "IS_MODEM_CONNECTED", "apn", "ip-type", "user", "password"
         try:
@@ -56,7 +56,7 @@ class ModemControl:
 
     @staticmethod
     def modem_delete_connection():
-        config_path = "/etc/modem/modem.conf"
+        config_path = "/etc/napiconfig/modem.conf"
         service_name = "modem-connection-control"
         config_var = "IS_MODEM_CONNECTED"
         line_list = list()
@@ -249,7 +249,7 @@ class ModemControl:
             # apn_set.Set({'profile-id': GLib.Variant.new_int32(1), 'apn': GLib.Variant.new_string(str(apn_input))})
             response = apn_set.List()[0]['apn']
             return response
-        except GLib.GError as err:
+        except Exception as err:
             # print(err.args)
             return 'internet'
 
@@ -370,7 +370,7 @@ def generate_event():
                 'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
                 'CONNECTED')
 
-            file_path = "/etc/modem/modem.conf"
+            file_path = "/etc/napiconfig/modem.conf"
             name_prop_list = "apn", "ip-type", "user", "password"
             pulled_config = list()
             with open(file_path, "r") as config:
@@ -615,12 +615,8 @@ def sys_service_manage(service, command="restart"):
         case _:
             pass
 
-    # stop = [f"sudo systemctl stop {service}.service"]
-    # start = [f"sudo systemctl start {service}.service"]
     try:
         subprocess.check_output(line, universal_newlines=True, shell=True)
-        # subprocess.check_output(stop, universal_newlines=True, shell=True)
-        # subprocess.check_output(start, universal_newlines=True, shell=True)
     except subprocess.CalledProcessError:
         flash("Недостаточно системных прав!")
         pass
