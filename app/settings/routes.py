@@ -18,7 +18,7 @@ from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys
 
 
 def routes(bp):
-    @bp.route("/", methods=['GET'])
+    @bp.route("/")
     @login_required
     def index():
         uptime = str(sys_uptime())
@@ -36,194 +36,7 @@ def routes(bp):
             cpu_avg=cpu_avg,
             disk=disk,
             db=db,
-        )
-
-    @bp.route("/service-list", methods=["GET"])
-    @login_required
-    def service_list():
-        service_status = []
-
-        if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
-            service_list = [
-                'systemd-networkd',
-                'systemd-resolved',
-                'telegraf',
-                'lorabridge',
-                'mosquitto',
-                'grafana-server',
-                'influxdb',
-                'swupdate',
-            ]
-            service_installed = []
-
-            # Check installed service status
-            for i in service_list:
-                try:
-                    name = str(i).split(".")[0]
-                    subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
-                    service_installed.append(name)
-                except subprocess.CalledProcessError:
-                    pass
-
-            for s in service_installed:
-                name = str(s).split(".")[0]
-                is_active = subprocess.check_output(f"systemctl show -p ActiveState --value {name}",
-                                                 universal_newlines=True,
-                                                 shell=True)
-                is_active = str(is_active).split("\n")[0]
-                is_enabled = subprocess.check_output(f"systemctl show -p UnitFileState --value {name}",
-                                                 universal_newlines=True,
-                                                 shell=True)
-                is_enabled = str(is_enabled).split("\n")[0]
-                service_status.append((name, is_active, is_enabled))
-        else:
-            flash('Тут нет Systemd 😱')
-
-        return jsonify({"data": service_status})
-
-    @bp.route("/create", methods=['POST'])
-    @login_required
-    def create_handler():
-        config = request.json
-        if not config or not 'name' in config:
-            abort(400)
-        else:
-            if config['name'] == "ussd-request":
-                modem = ModemControl()
-                modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-                response = False
-                input_request = request.json
-
-                if input_request["data"] == 'ussd_cancel':
-                    response = modem.modem_ussd_cancel()
-                elif modem.modem_ussd_status() == 1:
-                    response = modem.modem_ussd_request(input_request["data"])
-                elif modem.modem_ussd_status() == 3:
-                    modem.modem_ussd_response(input_request["data"])
-
-                    # Можно изменить время задержки
-                    time.sleep(5)
-                    response = modem.modem_ussd_network_request()
-
-                ussd_status = modem.modem_ussd_status()
-                return_data = {"response": response, 'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
-            elif config['name'] == "index-msg":
-                if config['data'] == 'db-clean':
-                    db_clean()
-                    return_data = {"response": "DB Cleaned"}
-
-                elif config['data'] == "tzauto":
-                    sys_auto_timezone()
-                    return_data = {"response": "Timezone set"}
-
-                elif config['data'] == "reboot":
-                    sys_reboot()
-                    return_data = {"response": "Reboot confirmed"}
-
-                elif config['data'] == "poweroff":
-                    sys_poweroff()
-                    return_data = {"response": "Poweroff confirmed"}
-
-                elif config['data'] == "soft-reset":
-                    sys_soft_reset()
-                    sys_reboot()
-                    return_data = {"response": "Soft reset confirmed"}
-
-        return jsonify(return_data), 200
-
-    @bp.route("/update", methods=['PUT'])
-    @login_required
-
-    def update_handler():
-        config = request.json
-        if not config or not 'name' in config:
-            abort(400)
-        else:
-            if config['name'] == "connection-switch":
-                modem = ModemControl()
-                con_status = request.json
-                state = con_status.get('status')
-
-                if state:
-                    modem.modem_delete_connection()
-                else:
-                    modem_connection_config = session.get('modem_connection_config',
-                                                        (modem.modem_get_init_apn(), 4, '', ''))
-                    modem.modem_add_connection(modem_connection_config)
-
-            elif config['name'] == "connection-form":
-                apn_info = config['apn']
-                ip_info = int(config['ip'])
-                user_info = config["user"]
-                password_info = config["password"]
-                conn_config_input = (apn_info, ip_info, user_info, password_info)
-
-                if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
-                    conn_config_input = ('internet', ip_info, '', '')
-
-                session['modem_connection_config'] = conn_config_input
-                modem = ModemControl()
-                modem.modem_add_connection(conn_config_input)
-
-            elif config['name'] == "service-status":
-                if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
-                    service_list = [
-                        'systemd-networkd',
-                        'systemd-resolved',
-                        'telegraf',
-                        'lorabridge',
-                        'mosquitto',
-                        'grafana-server',
-                        'influxdb',
-                        'swupdate',
-                    ]
-                    service_installed = []
-
-                    # Check installed service status
-                    for i in service_list:
-                        try:
-                            name = str(i).split(".")[0]
-                            subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
-                            service_installed.append(name)
-                        except subprocess.CalledProcessError:
-                            pass
-                            # return jsonify({"message": "Service not found"}), 404
-
-                    if config['data'][1] == "Active":        
-                        sys_service_manage(service_installed[int(config['data'][0])], "stop")
-                    else:
-                        sys_service_manage(service_installed[int(config['data'][0])], "start")
-
-            elif config['name'] == "service-preset":
-                if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
-                    service_list = [
-                        'systemd-networkd',
-                        'systemd-resolved',
-                        'telegraf',
-                        'lorabridge',
-                        'mosquitto',
-                        'grafana-server',
-                        'influxdb',
-                        'swupdate',
-                    ]
-                    service_installed = []
-
-                    # Check installed service status
-                    for i in service_list:
-                        try:
-                            name = str(i).split(".")[0]
-                            subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
-                            service_installed.append(name)
-                        except subprocess.CalledProcessError:
-                            pass
-                            # return jsonify({"message": "Service not found"}), 404
-
-                    if config['data'][1] == "Enabled":        
-                        sys_service_manage(service_installed[int(config['data'][0])], "disable")
-                    else:
-                        sys_service_manage(service_installed[int(config['data'][0])], "enable")
-        
-        return jsonify({"message": "Resource updated successfully"}), 200
+        ) 
     
     @bp.route('/lora', methods=['GET', 'POST'])
     @login_required
@@ -341,24 +154,6 @@ def routes(bp):
         return render_template(
             'settings/firmware.html'
         )
-
-    @bp.route('/sse')
-    @login_required
-    def sse():
-        return Response(generate_event(), content_type='text/event-stream')
-
-
-    @bp.route("/ussd_request", methods=['GET'])
-    @login_required
-    def modem_ussd_handler():
-        modem = ModemControl()
-        modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-
-        if request.method == "GET":
-            ussd_status = modem.modem_ussd_status()            
-            return_data = {'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
-        
-            return jsonify(return_data), 200
 
     @bp.route("/modem")
     @login_required

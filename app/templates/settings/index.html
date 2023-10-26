@@ -22,11 +22,10 @@
         </button>
         <!-- modal -->
         <div class="modal fade" id="cleaDB" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
-             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+             aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h2 class="modal-title fs-5" id="staticBackdropLabel">Очистка базы данных</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -52,11 +51,10 @@
             </button>
             <!-- modal -->
             <div class="modal fade" id="reboot" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticReboot" aria-hidden="true">
+                 aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="staticReboot">Перезагрузка</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -78,11 +76,10 @@
             </button>
             <!-- modal -->
             <div class="modal fade" id="poweroff" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticPoweroff" aria-hidden="true">
+                 aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="staticPoweroff">Выключить</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -109,11 +106,10 @@
             </button>
             <!-- modal -->
             <div class="modal fade" id="reset" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticReset" aria-hidden="true">
+                 aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="staticReset">Сброс данных</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -166,11 +162,10 @@
         </button>
         <!-- modal -->
         <div class="modal fade" id="tzauto" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
-             aria-labelledby="tzautoLabel" aria-hidden="true">
+             aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h2 class="modal-title fs-5" id="tzautoLabel">Установка временной зоны</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -243,7 +238,7 @@ let service_list = document.querySelector('.service-list-view');
 document.addEventListener("DOMContentLoaded", async ()=>
 {
   //Fetch data from the server
-  returnData = await postJSON("/settings/service-list", "GET")
+  returnData = await postJSON("/api/settings/service-list", "GET")
   returnData['data'].forEach(element => 
   {
     service_list.innerHTML += 
@@ -283,7 +278,7 @@ document.addEventListener("DOMContentLoaded", async ()=>
   {
     async function putToServer(data, button, option)
     {
-      let returnData = await postJSON('/settings/update', "PUT", data);
+      let returnData = await postJSON('/api/settings/update', "PUT", data);
       if(option === "service_status")
       {
         button.innerHTML = (button.innerHTML === "Active") ? "Inactive" : "Active";
@@ -347,10 +342,11 @@ interact_buttons.forEach(async (button)=>
   button.addEventListener('click', async()=>
   {
     data = {name: "index-msg", data: button.getAttribute('name')};
-    let response = await postJSON('/settings/create', "POST", data );
+    serverResponse = await postJSON('/api/settings/create', "POST", data );
   });
 
 });
+
 
 
 </script>

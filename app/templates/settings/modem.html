@@ -252,7 +252,7 @@ primary_button.addEventListener("click", async ()=>
     let form = document.querySelector("#input_value");
     
     data = {name: "ussd-request", data: form.value};
-    returnData = await postJSON("/settings/create", "POST", data);
+    returnData = await postJSON("/api/settings/create", "POST", data);
 
     insertField.textContent = returnData['response'];
     ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
@@ -269,7 +269,7 @@ primary_button.addEventListener("click", async ()=>
         {
             data = {name: "ussd-request", data: "ussd_cancel"}
 
-            returnData = await postJSON("/settings/create", "POST", data);
+            returnData = await postJSON("/api/settings/create", "POST", data);
             insertField.textContent = "";
             ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
             sec_btn_container.classList.add("hidden");
@@ -289,7 +289,7 @@ fast_connection_btn.addEventListener('click', () => {
     let state = !con_switch.checked;
 
     let message = {name: "connection-switch", status: state}
-    postJSON("/settings/update", 'PUT', message);
+    postJSON("/api/settings/update", 'PUT', message);
 
 });
 
@@ -306,10 +306,10 @@ init_connection.addEventListener('click', () => {
     let message = {name: "connection-form", apn: apn, ip: ip, user: user, password: password};
     // console.log(message)
     // Send the message to the server
-    postJSON("/settings/update", 'PUT', message);
+    postJSON("/api/settings/update", 'PUT', message);
 });
 
-const eventSource = new EventSource('/settings/sse');
+const eventSource = new EventSource('/api/settings/sse');
 
 // This function is called when a message is received from the server
 eventSource.onmessage = function(event) {
@@ -354,7 +354,7 @@ eventSource.onmessage = function(event) {
 document.addEventListener("DOMContentLoaded", async ()=>
 {
     //Fetch data from the server
-    returnData = await postJSON("/settings/ussd_request", "GET");
+    returnData = await postJSON("/api/settings/ussd-request", "GET");
 
     //Select the element with the class "ussd-status"
     let ussd_status = document.querySelector(".ussd-status");
@@ -377,7 +377,7 @@ document.addEventListener("DOMContentLoaded", async ()=>
             //Create an object with the data to be sent to the server
             data = {name: "ussd-request", data: "ussd_cancel"}
             //Send the data to the server
-            returnData = await postJSON("/settings/ussd_request", "POST", data);
+            returnData = await postJSON("/api/settings/ussd_request", "POST", data);
 
             insertField.textContent = "";
             ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
