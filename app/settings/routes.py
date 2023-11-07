@@ -10,7 +10,7 @@ from werkzeug.security import safe_join
 from app.forms.network import NetworkForm
 from app.forms.sensors import LoraConfigForm
 
-from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session, Response
+from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session, Response, abort
 
 from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, SysConfig,
                        sys_service_manage, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
@@ -18,7 +18,7 @@ from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys
 
 
 def routes(bp):
-    @bp.route("/", methods=['GET'])
+    @bp.route("/")
     @login_required
     def index():
         uptime = str(sys_uptime())
@@ -28,76 +28,6 @@ def routes(bp):
         disk = str(sys_disk())
         db = str(db_size())
 
-        service_status = []
-        if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
-            service_list = [
-                'systemd-networkd',
-                'systemd-resolved',
-                'telegraf',
-                'lorabridge',
-                'mosquitto',
-                'grafana-server',
-                'influxdb',
-                'swupdate',
-            ]
-            service_installed = []
-
-            # Check installed service status
-            for i in service_list:
-                try:
-                    name = str(i).split(".")[0]
-                    subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
-                    service_installed.append(name)
-                except subprocess.CalledProcessError:
-                    pass
-
-            for s in service_installed:
-                name = str(s).split(".")[0]
-                status = subprocess.check_output(f"systemctl show -p ActiveState --value {name}",
-                                                 universal_newlines=True,
-                                                 shell=True)
-                status = str(status).split("\n")[0]
-                service_status.append((name, status))
-        else:
-            flash('Тут нет Systemd 😱')
-
-        # Deleting data in the 'wal' and 'date' folders, influxdb2 databases
-        db_cln = request.args.get('dbclean')
-
-        if request.method == 'GET' and db_cln == 'y':
-            db_clean()
-            return redirect(request.referrer)
-
-        # Automatic set timezone after click in the button and if internet as exist
-        tz_auto = request.args.get('tzauto')
-
-        if request.method == 'GET' and tz_auto == 'y':
-            sys_auto_timezone()
-            return redirect(request.referrer)
-
-        # System reboot
-        reboot = request.args.get('reboot')
-
-        if request.method == 'GET' and reboot == 'y':
-            sys_soft_reset()
-            sys_reboot()
-            return redirect(request.referrer)
-
-        # System poweroff
-        poweroff = request.args.get('poweroff')
-
-        if request.method == 'GET' and poweroff == 'y':
-            sys_poweroff()
-            return redirect(request.referrer)
-
-        # System overlay reset
-        soft_reset = request.args.get('soft_reset')
-
-        if request.method == 'GET' and soft_reset == 'y':
-            sys_soft_reset()
-            sys_reboot()
-            return redirect(request.referrer)
-
         return render_template(
             'settings/index.html',
             uptime=uptime,
@@ -105,10 +35,9 @@ def routes(bp):
             ram=ram,
             cpu_avg=cpu_avg,
             disk=disk,
-            service_status=service_status,
             db=db,
-        )
-
+        ) 
+    
     @bp.route('/lora', methods=['GET', 'POST'])
     @login_required
     def lora_settings():
@@ -226,96 +155,15 @@ def routes(bp):
             'settings/firmware.html'
         )
 
-    @bp.route('/sse')
-    @login_required
-    def sse():
-        return Response(generate_event(), content_type='text/event-stream')
-
-    @bp.route("/init_connection_setup", methods=['PUT'])
-    @login_required
-    def init_settings_form_handler():
-
-        init_config = request.json
-
-        apn_info = init_config['apn']
-        ip_info = int(init_config['ip'])
-        user_info = init_config["user"]
-        password_info = init_config["password"]
-        conn_config_input = (apn_info, ip_info, user_info, password_info)
-
-        if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
-            conn_config_input = ('internet', ip_info, '', '')
-
-        session['modem_connection_config'] = conn_config_input
-        modem = ModemControl()
-        modem.modem_add_connection(conn_config_input)
-        return jsonify({"message": "Resource updated successfully"}), 200
-
-    @bp.route("/switch", methods=['PUT'])
-    @login_required
-    def modem_connection_switch_handler():
-        modem = ModemControl()
-        con_status = request.json
-        state = con_status.get('status')
-
-        if state:
-            modem.modem_delete_connection()
-        else:
-            modem_connection_config = session.get('modem_connection_config',
-                                                  (modem.modem_get_init_apn(), 4, '', ''))
-            modem.modem_add_connection(modem_connection_config)
-        return jsonify({"message": "Resource updated successfully"}), 200
-
-    @bp.route("/ussd_request", methods=['GET','POST'])
-    @login_required
-    def modem_ussd_handler():
-
-        modem = ModemControl()
-        modem_ussd_status_user_friendly = ('UNKNOWN', 'IDLE', 'ACTIVE', 'USER RESPONSE')
-        
-        if request.method == "POST":
-            response = False
-            input_request = request.json
-            if input_request["data"] == 'ussd_cancel':
-                response = modem.modem_ussd_cancel()
-            elif modem.modem_ussd_status() == 1:
-                response = modem.modem_ussd_request(input_request["data"])
-            elif modem.modem_ussd_status() == 3:
-                modem.modem_ussd_response(input_request["data"])
-
-                # Можно изменить время задержки
-                time.sleep(5)
-                response = modem.modem_ussd_network_request()
-            ussd_status = modem.modem_ussd_status()
-            return_data = {"response": response, 'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
-        elif request.method == "GET":
-            ussd_status = modem.modem_ussd_status()
-            
-            return_data = {'ussd_status': modem_ussd_status_user_friendly[ussd_status]}
-        
-        # session['ussd_response'] = response
-        return jsonify(return_data), 200
-
     @bp.route("/modem")
     @login_required
     def modem_settings():
-        """Основная функция, связанная с URL адресом /settings/modem.
-        Возвращает информацию о модеме, ответы в интерактивном поле запросов и булеан Истина. Также
-        возвращает информацию о подключении."""
+        """Основная функция, связанная с URL адресом /settings/modem."""
         modem = ModemControl()
         show_modem = modem.getter()
-        nw_form = NetworkForm()
-        # modem_code_status = modem.modem_check_state()
-        # modem_status_user_friendly = (
-        #     'FAILED', 'UNKNOWN', 'INITIALIZING', 'MODEM_STATE_LOCKED', 'DISABLED', 'DISABLING',
-        #     'ENABLING', 'ENABLED', 'SEARCHING', 'REGISTERED', 'DISCONNECTING', 'CONNECTING',
-        #     'CONNECTED')
-
         output_form = {
-            'show_modem': show_modem,
-            'nw_form': nw_form,     
+            'show_modem': show_modem     
         }
-
         return render_template("/settings/modem.html",
                                form=output_form)
 

@@ -21,11 +21,10 @@
 
             <div class="card-body d-flex flex-column">
                 <div class="form-check form-switch">
-                    <form class="form-horizontal" method="post" action="{{ url_for('settings.modem_settings') }}">
+                    <form class="form-horizontal">
 
                         <input class="form-check-input connection-switch" type="checkbox" role="switch"
-                               name="connectionSwitch" id="connectionSwitch_1"
-                               {% if form['modem_status'] == "CONNECTED" %} checked {% endif %}>
+                               name="connectionSwitch" id="connectionSwitch_1">
                         <label class="form-check-label" for="connectionSwitch_1">Connection off/on</label>
 
                     </form>
@@ -248,63 +247,35 @@ let secondary_button = document.querySelector(".ussd-btn-secondary");
 let sec_btn_container = document.querySelector(".container-btn-secondary");
 let insertField = document.querySelector(".copy_text_field");
 
-primary_button.addEventListener("click", async ()=>{
+primary_button.addEventListener("click", async ()=>
+{
     let form = document.querySelector("#input_value");
     
-    data = {"data": form.value};
-    await fetch("/settings/ussd_request", {
-        method:"POST",
-        headers: 
-        {
-        "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),})
-    .then(response => {
-        if (response.status !== 200) 
-        {
-            console.log('Ошибка: ' + response.status);
-        }
-      return response.json();
-    })
-    .then(data => {
+    data = {name: "ussd-request", data: form.value};
+    returnData = await postJSON("/api/settings/create", "POST", data);
 
-        insertField.textContent = data['response'];
-        ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+    insertField.textContent = returnData['response'];
+    ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
 
-        if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
-            ussd_status.innerHTML === "USSD Session State: IDLE"){
-            sec_btn_container.classList.add("hidden");
-
-        }
-        else
+    if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+        ussd_status.innerHTML === "USSD Session State: IDLE")
+    {
+        sec_btn_container.classList.add("hidden");
+    }
+    else
+    {
+        sec_btn_container.classList.remove("hidden");
+        secondary_button.addEventListener('click', async () => 
         {
-            sec_btn_container.classList.remove("hidden");
-            secondary_button.addEventListener('click', async () => {
-            data = {"data": "ussd_cancel"}
-            await fetch("/settings/ussd_request", {
-            method:"POST",
-            headers: 
-            {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),})
-        .then(response => {
-            if (response.status !== 200) 
-            {
-                console.log('Ошибка: ' + response.status);
-            }
-        return response.json();
-        })
-        .then(data => {
+            data = {name: "ussd-request", data: "ussd_cancel"}
+
+            returnData = await postJSON("/api/settings/create", "POST", data);
             insertField.textContent = "";
-            ussd_status.textContent = "USSD Session State: " + data['ussd_status'];
+            ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
+            sec_btn_container.classList.add("hidden");
         });
-            });
-        }
-    });
-
+    }
 });
-
 
 
 
@@ -312,57 +283,66 @@ primary_button.addEventListener("click", async ()=>{
 let stateFlag = document.querySelector('.modem_state').innerText;
 let con_switch = document.querySelector('.connection-switch');
 let fast_connection_btn = document.querySelector('.fast-connection-btn');
-//let alert_banner = document.quelet insertField = document.querySelector(".copy_text_field");
 
 fast_connection_btn.addEventListener('click', () => {
 
     let state = !con_switch.checked;
 
-    //alert_banner.innerHTML = '';
-    let message = {status: state}
-    // const data = {state: state};
-    postJSON("/settings/switch", message, 'PUT');
+    let message = {name: "connection-switch", status: state}
+    postJSON("/api/settings/update", 'PUT', message);
 
 });
 
 
-
 let init_connection = document.querySelector('.init-connection-btn');
 init_connection.addEventListener('click', () => {
+    // Get the values of the form elements
     let apn = document.querySelector('[name="apn_input"]').value;
     let ip = document.querySelector('[name="ipvX"]').value;
     let user = document.querySelector('[name="user_input"]').value;
     let password = document.querySelector('[name="password_input"]').value;
 
-    let message = {apn: apn, ip: ip, user: user, password: password};
-    console.log(message)
-    postJSON("/settings/init_connection_setup", message, 'PUT');
+    // Create an object to store the values
+    let message = {name: "connection-form", apn: apn, ip: ip, user: user, password: password};
+    // console.log(message)
+    // Send the message to the server
+    postJSON("/api/settings/update", 'PUT', message);
 });
 
-const eventSource = new EventSource('/settings/sse');
+const eventSource = new EventSource('/api/settings/sse');
 
+// This function is called when a message is received from the server
 eventSource.onmessage = function(event) {
+    // This function is used to iterate through the array of names and update the HTML elements
     function iter(name, array, dataArray, index) {
+        // Loop through the array of HTML elements and update the innerHTML with the data from the array
         array.forEach((point)=> {
         point.innerHTML = name + dataArray[index];
         });
     }
-    // console.log(event.data)
 
+    // Check if the data is not empty
     if (event.data !== '')
     {
+        // Parse the data into a JSON object
         let modemConfig = JSON.parse(event.data)
+        // Create an array of names
         let nameArray = ["State: ", "Name: ", "APN: ", "IPv: ", "User: ", "Password: ", "Address: ", "Gateway: ",
                         "DNS: "];
+        // Create an array of HTML classes
         let classArray = [".modem_state", ".modem_name", ".modem_apn", ".modem_ip", ".modem_user", ".modem_password",
                             ".modem_address", ".modem_gateway", "modem_dns"];
 
+        // Enable the connection button if the modem is not disabled or registered
         init_connection.disabled = !(modemConfig[0] !== "DISABLED" || modemConfig !== "REGISTERED");
 
+        // Loop through the array of names and update the HTML elements
         for( let i = 0; i < nameArray.length; i ++)
         {
 
+            // Get the HTML elements from the classArray
             let modemState = document.querySelectorAll(classArray[i]);
+            // Call the iter function to update the HTML elements
             iter(nameArray[i], modemState, modemConfig, i);
 
         }
@@ -371,21 +351,43 @@ eventSource.onmessage = function(event) {
 
 };
 
+document.addEventListener("DOMContentLoaded", async ()=>
+{
+    //Fetch data from the server
+    returnData = await postJSON("/api/settings/ussd-request", "GET");
 
-document.addEventListener("DOMContentLoaded", async ()=>{
-    await fetch("/settings/ussd_request")
-    .then(response => {
-      if (response.status !== 200) {
-          console.log('Ошибка: ' + response.status);
-        }
-      return response.json();
-    })
-    .then(data =>{
-        let ussd_status = document.querySelector(".ussd-status");
-        ussd_status.textContent = "USSD Session State: " +  data['ussd_status'];
-    });
+    //Select the element with the class "ussd-status"
+    let ussd_status = document.querySelector(".ussd-status");
+    //Set the text content of the element to the data from the server
+    ussd_status.textContent = "USSD Session State: " +  returnData['ussd_status'];
+
+    //Check if the status is "UNKNOWN" or "IDLE"
+    if (ussd_status.innerHTML === "USSD Session State: UNKNOWN" || 
+        ussd_status.innerHTML === "USSD Session State: IDLE"){
+        //Hide the secondary button container
+        sec_btn_container.classList.add("hidden");
+    }
+    else
+    {
+        //Show the secondary button container
+        sec_btn_container.classList.remove("hidden");
+        //Add an event listener to the secondary button
+        secondary_button.addEventListener('click', async () => 
+        {
+            //Create an object with the data to be sent to the server
+            data = {name: "ussd-request", data: "ussd_cancel"}
+            //Send the data to the server
+            returnData = await postJSON("/api/settings/ussd_request", "POST", data);
+
+            insertField.textContent = "";
+            ussd_status.textContent = "USSD Session State: " + returnData['ussd_status'];
+            sec_btn_container.classList.add("hidden");
+        
+        });
+    }
+
+});
 
 
-    });
 </script>
 {% endblock %}

@@ -2,7 +2,9 @@
 {% block title %} Системная информация {% endblock %}
 {% block title_page %}Системная информация{% endblock %}
 {% block content %}
+
 <div class="card">
+  
   <div class="card-header">
     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-motherboard">
       </use></svg>Система
@@ -21,12 +23,11 @@
             <svg class="bi opacity-75 theme-icon"><use href="#bi-trash3-fill"></use></svg>
         </button>
         <!-- modal -->
-        <div class="modal fade" id="cleaDB" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal fade" id="cleaDB" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
+             aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h2 class="modal-title fs-5" id="staticBackdropLabel">Очистка базы данных</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -34,9 +35,10 @@
                   <p>Если вы соглашаетесь, то эти данные будут утеряны навсегда!</p>
               </div>
               <div class="modal-footer">
-                  <a class="float-end" href="{{ url_for('settings.index', dbclean='y') }}">
-                    <button type="button" class="btn btn-danger">Да</button>
-                  </a>
+
+                    <button type="button" name="db-clean" class="interact-btn btn btn-danger"
+                            data-bs-dismiss="modal">Да</button>
+
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
               </div>
             </div>
@@ -51,20 +53,20 @@
             </button>
             <!-- modal -->
             <div class="modal fade" id="reboot" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticReboot" aria-hidden="true">
+                 aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="staticReboot">Перезагрузка</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
                       <p>Перезагрузить устройство ?</p>
                   </div>
                   <div class="modal-footer">
-                      <a class="float-end" href="{{ url_for('settings.index', reboot='y') }}">
-                        <button type="button" class="btn btn-danger">Да</button>
-                      </a>
+
+                        <button type="button" name="reboot" class="interact-btn btn btn-danger"
+                                data-bs-dismiss="modal">Да</button>
+
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -76,20 +78,20 @@
             </button>
             <!-- modal -->
             <div class="modal fade" id="poweroff" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticPoweroff" aria-hidden="true">
+                 aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="staticPoweroff">Выключить</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
                       <p>Выключить устройство ?</p>
                   </div>
                   <div class="modal-footer">
-                      <a class="float-end" href="{{ url_for('settings.index', poweroff='y') }}">
-                        <button type="button" class="btn btn-danger">Да</button>
-                      </a>
+
+                        <button type="button" name="poweroff" class="interact-btn btn btn-danger" 
+                                data-bs-dismiss="modal">Да</button>
+
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -106,11 +108,10 @@
             </button>
             <!-- modal -->
             <div class="modal fade" id="reset" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticReset" aria-hidden="true">
+                 aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="staticReset">Сброс данных</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -118,7 +119,7 @@
                   </div>
                   <div class="modal-footer">
                       <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                              data-bs-target="#reset_confirmation">Да</button>
+                              data-bs-target="#reset_confirmation" data-bs-dismiss="modal">Да</button>
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -137,9 +138,10 @@
                       <p> Подтвердите еще раз, что желаете удалить все данные:</p>
                   </div>
                   <div class="modal-footer">
-                      <a class="float-end" href="{{ url_for('settings.index', soft_reset='y') }}">
-                        <button type="button" class="btn btn-danger">Да</button>
-                      </a>
+
+                        <button type="button" name="soft-reset" class="interact-btn btn btn-danger"
+                                data-bs-dismiss="modal">Да</button>
+
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
                   </div>
                 </div>
@@ -161,12 +163,11 @@
             <svg class="bi opacity-75 theme-icon"><use href="#bi-clock"></use></svg>
         </button>
         <!-- modal -->
-        <div class="modal fade" id="tzauto" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-             aria-labelledby="tzautoLabel" aria-hidden="true">
+        <div class="modal fade" id="tzauto" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
+             aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h2 class="modal-title fs-5" id="tzautoLabel">Установка временной зоны</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -174,9 +175,10 @@
                   <p><small class="text-body-secondary">*Для работы данной функции требуется доступ в интернет</small></p>
               </div>
               <div class="modal-footer">
-                  <a class="float-end" href="{{ url_for('settings.index', tzauto='y') }}">
-                    <button type="button" class="btn btn-danger">Да</button>
-                  </a>
+
+                    <button type="button" name="tzauto" class="interact-btn btn btn-danger"
+                            data-bs-dismiss="modal">Да</button>
+
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
               </div>
             </div>
@@ -203,29 +205,150 @@
     <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-list-task">
       </use></svg>Системные службы
   </div>
-  <ul class="list-group list-group-flush">
-      {% for service, status in service_status %}
-        <li class="list-group-item">
-            <div class="row justify-content-start">
-                <div class="col">
-                  {{ service }}
-                </div>
-                <div class="col text-end">
-                    <div class="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-primary">Остановить</button>
-                        <button type="button" class="btn btn-primary">Отключить</button>
-                    </div>
-                {% if status == 'active' %}
-                    <span class="badge bg-success ">Служба запущена</span>
-                {% else %}
-                    <span class="badge bg-secondary ">Служба остановлена</span>
-                {% endif %}
-                </div>
-            </div>
-        </li>
-      {% endfor %}
+  <ul class="service-list-view list-group list-group-flush">
+      
   </ul>
 </div>
+
+<div class="modal fade service-confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <p> Подтвердите, что действительно хотите продолжить: </p>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="service-confirm-btn btn btn-primary" data-bs-dismiss="modal">Подтвердить</button>
+          <button type="button" class="service-cancel-btn btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
 <br>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/select_options_button_handler.js"></script>
+<script>
+
+serverResponse = null;
+
+let service_list = document.querySelector('.service-list-view');
+document.addEventListener("DOMContentLoaded", async ()=>
+{
+  //Fetch data from the server
+  returnData = await postJSON("/api/settings/service-list", "GET")
+  returnData['data'].forEach(element => 
+  {
+    service_list.innerHTML += 
+    `<li class="list-group-item"><div class="row justify-content-start">
+
+      <div class="col">
+        ${element[0]}
+      </div>
+      <div class="col text-end">
+        <div class="btn-group" role="group" aria-label="Service Control">
+        ${(element[1] === "active") ? `
+        <button type="button" class="service-status-btn btn btn-success btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Active</button>` :
+            `
+        <button type="button" class="service-status-btn btn btn-danger btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Inactive</button>`
+          }
+        ${(element[2] === "enabled") ? `
+        <button type="button" class="service-preset-btn btn btn-success btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Enabled</button>` :
+            `
+        <button type="button" class="service-preset-btn btn btn-danger btn-sm" 
+                              data-bs-toggle="modal" data-bs-target=".service-confirmation">Disabled</button>`
+          }
+        </div>
+      </div>
+    </div></li>`
+  });
+
+  let service_status_list = document.querySelectorAll('.service-status-btn');
+  let service_preset_list = document.querySelectorAll('.service-preset-btn');
+  let service_confirm = document.querySelector('.service-confirm-btn');
+  let service_cancel = document.querySelector('.service-cancel-btn');
+
+
+  async function outer()
+  {
+    async function putToServer(data, button, option)
+    {
+      let returnData = await postJSON('/api/settings/update', "PUT", data);
+      if(option === "service_status")
+      {
+        button.innerHTML = (button.innerHTML === "Active") ? "Inactive" : "Active";
+      }
+      else if(option === "service_preset")
+      {
+        button.innerHTML = (button.innerHTML === "Enabled") ? "Disabled" : "Enabled";
+      }
+      button.classList.toggle('btn-success');
+      button.classList.toggle('btn-danger');
+      return returnData;
+    }
+    serverResponse = putToServer(data, currentButton, currentOption)
+  }
+
+  service_status_list.forEach((service_status, index)=>
+  {
+    service_status.addEventListener('click', async ()=>
+    {
+      data = {name: "service-status", data: [index, service_status.innerHTML]}
+      
+      //Глобальная переменная для хранения текущей кнопки
+      currentButton = service_status;
+      currentOption = "service_status";
+
+      service_confirm.addEventListener('click', outer);
+      
+      service_cancel.addEventListener('click', () =>
+      {
+        service_confirm.removeEventListener('click', outer);
+      });
+    });
+  });
+
+  service_preset_list.forEach((service_preset, index)=>
+  {
+    service_preset.addEventListener('click', async ()=>
+    {
+      data = {name: "service-preset", data: [index, service_preset.innerHTML]}
+      
+      //Глобальная переменная для хранения текущей кнопки
+      currentButton = service_preset;
+      currentOption = "service_preset";
+
+      service_confirm.addEventListener('click', outer);
+      
+      service_cancel.addEventListener('click', () =>
+      {
+        service_confirm.removeEventListener('click', outer);
+      });
+    });
+  });
+
+});
+
+
+
+let interact_buttons = document.querySelectorAll('.interact-btn');
+interact_buttons.forEach(async (button)=> 
+{
+  button.addEventListener('click', async()=>
+  {
+    data = {name: "index-msg", data: button.getAttribute('name')};
+    serverResponse = await postJSON('/api/settings/create', "POST", data );
+  });
+
+});
+
+</script>
 
 {% endblock %}

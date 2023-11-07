@@ -365,7 +365,41 @@
               </ul>
             </li>
           </ul>
-        </div>
+        </div> 
+        {% else %}
+
+        <li class="nav-item dropdown col-lg-auto">
+          <button class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center"
+                  id="bd-theme" type="button" aria-expanded="false"
+                  data-bs-toggle="dropdown" data-bs-display="static">
+            <svg class="bi my-1 theme-icon-active"><use href="#sun-fill"></use></svg>
+            <span class="d-lg-none ms-2">Тема</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme" style="--bs-dropdown-min-width: 8rem;">
+            <li>
+              <button type="button"
+                      class="dropdown-item d-flex align-items-center active" data-bs-theme-value="light">
+                <svg class="bi me-2 opacity-75 theme-icon"><use href="#sun-fill"></use></svg>
+                Светлая
+                <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark">
+                <svg class="bi me-2 opacity-75 theme-icon"><use href="#moon-stars-fill"></use></svg>
+                Темная
+                <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto">
+                <svg class="bi me-2 opacity-75 theme-icon"><use href="#circle-half"></use></svg>
+                Авто
+                <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+              </button>
+            </li>
+          </ul>
+        </li>
         {% endif %}
       </div>
     </nav>
@@ -453,34 +487,38 @@
                 })
             })
           })()
-
-          document.addEventListener("DOMContentLoaded", async ()=>{
-
-              await fetch("/connected_device_handler")
-              .then(response => {
-                  if (response.status !== 200) {
-                      console.log('Ошибка: ' + response.status);
-                    }
-                  return response.json();
-              })
-              .then(data =>{
-                  if (data["device-type"] === "1")
-                  {
-                      let targetLi = document.querySelector(".nav-settings-divider");
-                      let newLi = document.createElement("li");
-                      newLi.innerHTML =
-                          `<a class="dropdown-item" href="{{ url_for('settings.modem_settings') }}">
-                        <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
-                        LTE-модем
-                        </a>
-                        <hr class="dropdown-divider">`;
-                      targetLi.insertAdjacentElement('afterend', newLi);
-
+          
+          let targetLi = document.querySelector(".nav-settings-divider");
+          if(targetLi !== null)
+          {
+            document.addEventListener("DOMContentLoaded", async ()=>{
+            await fetch("/connected_device_handler")
+            .then(response => {
+                if (response.status !== 200) {
+                    console.log('Ошибка: ' + response.status);
                   }
-              });
+                return response.json();
+            })
+            .then(data =>{
+                if (data["device-type"] === "1")
+                {
+                    let targetLi = document.querySelector(".nav-settings-divider");
+                    let newLi = document.createElement("li");
+                    newLi.innerHTML =
+                        `<a class="dropdown-item" href="{{ url_for('settings.modem_settings') }}">
+                      <svg class="bi me-2 opacity-75 theme-icon"><use href="#bi-router"></use></svg>
+                      LTE-модем
+                      </a>
+                      <hr class="dropdown-divider">`;
+                    targetLi.insertAdjacentElement('afterend', newLi);
+
+                }
+            });
 
 
-          });
+            });
+          }
+          
 
 
     </script>

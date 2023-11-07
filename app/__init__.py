@@ -49,6 +49,8 @@ def create_app(config_class=Config):
     from app.sensors import bp as sensors_bp
     app.register_blueprint(sensors_bp, url_prefix='/sensors')
 
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
 
     #Error Handlers
     #app.register_error_handler(500, 'errors/internal_error.html')
