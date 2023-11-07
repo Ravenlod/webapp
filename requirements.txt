@@ -19,7 +19,7 @@ PyGObject==3.44.1
 PyGObject-stubs==2.8.0
 SQLAlchemy==2.0.3
 typing_extensions==4.5.0
-Werkzeug==2.3.7
+Werkzeug==3.0.1
 WTForms==3.0.1
 WTForms-SQLAlchemy==0.3
 zipp==3.16.2
