@@ -2,10 +2,10 @@
 from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from webapp_napilinux.extensions import db
+from ..extensions import db
 from flask import render_template, request, redirect, url_for, session, flash
 
-from webapp_napilinux.models.user import User
+from ..models.user import User
 
 
 def routes(bp):

@@ -1,5 +1,5 @@
 from flask import Blueprint
-from webapp_napilinux.api.routes import routes
+from .routes import routes
 
 bp = Blueprint('api', __name__)
 

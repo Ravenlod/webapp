@@ -6,11 +6,11 @@ from flask_login import login_required
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from webapp_napilinux.forms.sensors import SensorsTextConf, SensorAddConf
+from ..forms.sensors import SensorsTextConf, SensorAddConf
 
 from flask import render_template, current_app, flash, request, redirect, url_for, send_file
 
-from webapp_napilinux.utils import allowed_file, sys_service_manage
+from ..utils import allowed_file, sys_service_manage
 
 
 def routes(bp):

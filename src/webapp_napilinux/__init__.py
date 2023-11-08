@@ -4,9 +4,9 @@ from flask import Flask, Response
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
-from webapp_napilinux.config import Config
-from webapp_napilinux.extensions import db
-from webapp_napilinux.utils import ModemControl
+from .config import Config
+from .extensions import db
+from .utils import ModemControl
 # from werkzeug.exceptions import HTTPException
 
 
@@ -34,22 +34,22 @@ def create_app(config_class=Config):
         return User.query.get(int(user_id))
 
     # Register blueprints here
-    from webapp_napilinux.auth import bp as auth_bp
+    from .auth import bp as auth_bp
     app.register_blueprint(auth_bp)
 
-    from webapp_napilinux.main import bp as main_bp
+    from .main import bp as main_bp
     app.register_blueprint(main_bp)
 
-    from webapp_napilinux.settings import bp as settings_bp
+    from .settings import bp as settings_bp
     app.register_blueprint(settings_bp, url_prefix='/settings')
 
-    from webapp_napilinux.charts import bp as charts_bp
+    from .charts import bp as charts_bp
     app.register_blueprint(charts_bp, url_prefix='/charts')
 
-    from webapp_napilinux.sensors import bp as sensors_bp
+    from .sensors import bp as sensors_bp
     app.register_blueprint(sensors_bp, url_prefix='/sensors')
 
-    from webapp_napilinux.api import bp as api_bp
+    from .api import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
     #Error Handlers

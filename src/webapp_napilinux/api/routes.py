@@ -7,7 +7,7 @@ from flask_login import login_required
 
 from flask import flash, request, jsonify, session, Response, abort
 
-from webapp_napilinux.utils import (sys_service_manage, sys_soft_reset, db_clean, sys_auto_timezone, sys_reboot,
+from ..utils import (sys_service_manage, sys_soft_reset, db_clean, sys_auto_timezone, sys_reboot,
                        sys_poweroff, ModemControl, generate_event)
 
 
