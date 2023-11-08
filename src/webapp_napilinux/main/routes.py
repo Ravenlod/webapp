@@ -12,17 +12,14 @@ from ..utils import ModemControl
 def routes(bp):
     @bp.route("/", methods=['GET'])
     def index():
-        modem = ModemControl()
-
-        # modem_status = modem.modem_system_scan()
-        # Config.IsModemAvailable = modem_status
-        # print(modem_status)
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         else:
             sensors_list = []
-            for f in reversed(sorted(glob.glob("confs/*.conf"), key=os.path.getmtime)):
-                name = str(f).split("/")[1].split(".")[0]
+            current_directory = os.path.dirname(__file__)
+            parent_directory = os.path.dirname(current_directory) 
+            for f in sorted(glob.glob("*.conf", root_dir=f"{parent_directory}/confs")):
+                name = str(f).split(".")[0]
                 active_path = safe_join(current_app.config['ACTIVE_FOLDER'], f"{name}.conf")
                 active = os.path.exists(active_path)
                 sensors_list.append((name, active))
