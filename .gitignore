@@ -3,9 +3,6 @@ venv
 dist
 src/__pycache__
 src/webapp_napilinux/__pycache__
-src/webapp_napilinux/__pycache__/__init__.cpython-311.pyc
-src/webapp_napilinux/__pycache__/extensions.cpython-311.pyc
-src/webapp_napilinux/__pycache__/utils.cpython-311.pyc
 src/webapp_napilinux/api/__pycache__
 src/webapp_napilinux/auth/__pycache__
 src/webapp_napilinux/charts/__pycache__
