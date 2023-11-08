@@ -1,14 +1,13 @@
 import glob
 import os
 
-from flask_login import login_required, current_user
+from flask_login import current_user
 # from app.main import bp
 from flask import render_template, current_app, redirect, url_for
 from werkzeug.security import safe_join
 
-import app
 from app.utils import ModemControl
-from config import Config
+
 
 def routes(bp):
     @bp.route("/", methods=['GET'])

@@ -1,13 +1,13 @@
 import json
 
-from flask import Flask, render_template, Response
+from flask import Flask, Response
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
-from config import Config
+from .config import Config
 from app.extensions import db
 from app.utils import ModemControl
-from werkzeug.exceptions import HTTPException
+# from werkzeug.exceptions import HTTPException
 
 
 def create_app(config_class=Config):
