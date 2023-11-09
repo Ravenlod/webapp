@@ -13,3 +13,4 @@ src/webapp_napilinux/models/__pycache__
 src/webapp_napilinux/sensors/__pycache__
 src/webapp_napilinux/settings/__pycache__
 tests/__pycache__
+webapp_napilinux.egg-info
