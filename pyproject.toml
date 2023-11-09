@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "webapp_napilinux"
 version = "0.1.0"
 authors = [
-  { name="Ravenlod", email="talgatomarov68@gmail.com" },
+  { name="Ravenlod", email="talgatomarov68@gmail.com"},
+  { name="Igor Khabakhov", email="igorkha@nnz.ru"},
+  { name="Dmitry Bulkin"}, 
 ]
 description = "webapp for napilinux"
 readme = "README.md"
