@@ -1,11 +1,10 @@
 [build-system]
-
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-[project]
 
+[project]
 name = "webapp_napilinux"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   { name="Ravenlod", email="talgatomarov68@gmail.com" },
 ]
@@ -14,7 +13,8 @@ readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Development Status :: 1 - Alpha",
+    "Framework :: Flask",
+    "Development Status :: 4 - Beta",
 ]
 dependencies = [
     "alembic==1.9.3",
@@ -48,5 +48,12 @@ dependencies = [
     "zope.interface==6.1",
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/Ravenlod/webapp"
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+webapp_napilinux = ["*.html", "*.js", "*.png", "*.css", "*.ico", "*.jpg", "*.gif", "*.jpeg"]
+# webapp_napilinux = ["**"]
+
+[tool.setuptools.exclude-package-data]
+webapp_napilinux = ["*.pyc"]

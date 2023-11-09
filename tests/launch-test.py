@@ -1,3 +1,3 @@
-from src.webapp_napilinux import create_app
+import src.webapp_napilinux as core
 if __name__ == "__main__":
-    create_app().run()
+    core.create_app().run()

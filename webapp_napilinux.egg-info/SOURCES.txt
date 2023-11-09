@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+setup.py
+webapp_napilinux.egg-info/PKG-INFO
+webapp_napilinux.egg-info/SOURCES.txt
+webapp_napilinux.egg-info/dependency_links.txt
+webapp_napilinux.egg-info/requires.txt
+webapp_napilinux.egg-info/top_level.txt

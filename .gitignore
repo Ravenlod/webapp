@@ -2,6 +2,7 @@ venv
 .idea
 dist
 src/__pycache__
+src/webapp_napilinux.egg-info
 src/webapp_napilinux/__pycache__
 src/webapp_napilinux/api/__pycache__
 src/webapp_napilinux/auth/__pycache__

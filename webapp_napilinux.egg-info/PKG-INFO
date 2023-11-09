@@ -1,11 +1,11 @@
 Metadata-Version: 2.1
 Name: webapp-napilinux
-Version: 0.1.0
+Version: 0.0.1
 Summary: webapp for napilinux
 Author-email: Ravenlod <talgatomarov68@gmail.com>
 Classifier: Programming Language :: Python :: 3
 Classifier: Framework :: Flask
-Classifier: Development Status :: 4 - Beta
+Classifier: Development Status :: 3 - Alpha
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Requires-Dist: alembic==1.9.3
