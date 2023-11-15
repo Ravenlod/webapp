@@ -1,20 +1,14 @@
-import os.path
 import subprocess
 
 import time
-from os import path, popen
+from os import path
 
 from flask_login import login_required
-from werkzeug.security import safe_join
 
-from app.forms.network import NetworkForm
-from app.forms.sensors import LoraConfigForm
+from flask import flash, request, jsonify, session, Response, abort
 
-from flask import render_template, flash, current_app, request, redirect, url_for, jsonify, session, Response, abort
-
-from app.utils import (sys_uptime, sys_date, sys_ram, sys_cpu_avg, sys_disk, sys_wired_network_config, SysConfig,
-                       sys_service_manage, sys_soft_reset, db_size, db_clean, sys_auto_timezone, sys_reboot,
-                       sys_poweroff, ModemControl, findparam, generate_event)
+from ..utils import (sys_service_manage, sys_soft_reset, db_clean, sys_auto_timezone, sys_reboot,
+                       sys_poweroff, ModemControl, generate_event)
 
 
 def routes(bp):
