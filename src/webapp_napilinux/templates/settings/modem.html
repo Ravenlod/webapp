@@ -301,35 +301,26 @@ init_connection.addEventListener('click', () => {
     let ip = document.querySelector('[name="ipvX"]').value;
     let user = document.querySelector('[name="user_input"]').value;
     let password = document.querySelector('[name="password_input"]').value;
-
-    // Create an object to store the values
     let message = {name: "connection-form", apn: apn, ip: ip, user: user, password: password};
-    // console.log(message)
-    // Send the message to the server
+
     postJSON("/api/settings/update", 'PUT', message);
 });
 
-const eventSource = new EventSource('/api/settings/sse');
 
-// This function is called when a message is received from the server
+const eventSource = new EventSource('/api/settings/sse?target=modem');
+
 eventSource.onmessage = function(event) {
-    // This function is used to iterate through the array of names and update the HTML elements
     function iter(name, array, dataArray, index) {
-        // Loop through the array of HTML elements and update the innerHTML with the data from the array
         array.forEach((point)=> {
         point.innerHTML = name + dataArray[index];
         });
     }
 
-    // Check if the data is not empty
     if (event.data !== '')
     {
-        // Parse the data into a JSON object
         let modemConfig = JSON.parse(event.data)
-        // Create an array of names
         let nameArray = ["State: ", "Name: ", "APN: ", "IPv: ", "User: ", "Password: ", "Address: ", "Gateway: ",
                         "DNS: "];
-        // Create an array of HTML classes
         let classArray = [".modem_state", ".modem_name", ".modem_apn", ".modem_ip", ".modem_user", ".modem_password",
                             ".modem_address", ".modem_gateway", "modem_dns"];
 
@@ -340,9 +331,7 @@ eventSource.onmessage = function(event) {
         for( let i = 0; i < nameArray.length; i ++)
         {
 
-            // Get the HTML elements from the classArray
             let modemState = document.querySelectorAll(classArray[i]);
-            // Call the iter function to update the HTML elements
             iter(nameArray[i], modemState, modemConfig, i);
 
         }
@@ -356,9 +345,7 @@ document.addEventListener("DOMContentLoaded", async ()=>
     //Fetch data from the server
     returnData = await postJSON("/api/settings/ussd-request", "GET");
 
-    //Select the element with the class "ussd-status"
     let ussd_status = document.querySelector(".ussd-status");
-    //Set the text content of the element to the data from the server
     ussd_status.textContent = "USSD Session State: " +  returnData['ussd_status'];
 
     //Check if the status is "UNKNOWN" or "IDLE"
@@ -374,9 +361,7 @@ document.addEventListener("DOMContentLoaded", async ()=>
         //Add an event listener to the secondary button
         secondary_button.addEventListener('click', async () => 
         {
-            //Create an object with the data to be sent to the server
             data = {name: "ussd-request", data: "ussd_cancel"}
-            //Send the data to the server
             returnData = await postJSON("/api/settings/ussd_request", "POST", data);
 
             insertField.textContent = "";

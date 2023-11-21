@@ -8,16 +8,22 @@ from flask_login import login_required
 from flask import flash, request, jsonify, session, Response, abort
 
 from ..utils import (sys_service_manage, sys_soft_reset, db_clean, sys_auto_timezone, sys_reboot,
-                       sys_poweroff, ModemControl, generate_event)
+                       sys_poweroff, ModemControl, generate_modem_state, generate_index)
 
 
 def routes(bp):
 
 
-    @bp.route('/settings/sse')
+    @bp.route('/settings/sse', methods=["GET"])
     @login_required
     def sse():
-        return Response(generate_event(), content_type='text/event-stream')
+        target = request.args.get('target', 'default_value')
+        if target == "modem":
+            return Response(generate_modem_state(), content_type='text/event-stream')
+        elif target == "index":
+            return Response(generate_index(), content_type='text/event-stream')
+        else: 
+            return
 
     @bp.route("/settings/<string:module_name>", methods=["GET"])
     @login_required

@@ -19,7 +19,6 @@ def routes(bp):
     @login_required
     def index():
         uptime = str(sys_uptime())
-        date = str(sys_date())
         ram = str(sys_ram())
         cpu_avg = str(sys_cpu_avg())
         disk = str(sys_disk())
@@ -28,7 +27,6 @@ def routes(bp):
         return render_template(
             'settings/index.html',
             uptime=uptime,
-            date=date,
             ram=ram,
             cpu_avg=cpu_avg,
             disk=disk,

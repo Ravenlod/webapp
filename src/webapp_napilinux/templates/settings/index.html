@@ -157,11 +157,15 @@
       </use></svg>Дата и время
   </div>
   <ul class="list-group list-group-flush">
-    <li class="list-group-item">Текущее время: {{ date }}
+    <li class="list-group-item d-md-flex">
+      <div class="time-stream col"> <!-- time-stream generation --> </div> 
         <!-- Button trigger modal -->
+      <div class="col">
         <button type="submit" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#tzauto">
-            <svg class="bi opacity-75 theme-icon"><use href="#bi-clock"></use></svg>
+          <svg class="bi opacity-75 theme-icon"><use href="#bi-clock"></use></svg>
         </button>
+      </div> 
+        
         <!-- modal -->
         <div class="modal fade" id="tzauto" data-bs-backdrop="modal" data-bs-keyboard="false" tabindex="-1"
              aria-hidden="true">
@@ -186,7 +190,9 @@
         </div>
         <!-- End modal -->
     </li>
-    <li class="list-group-item">Время работы: {{ uptime }}</li>
+    <li class="list-group-item ">
+      <div class="uptime-stream">  <!-- time-stream generation -->  </div>
+    </li>
   </ul>
 </div>
 <br>
@@ -274,7 +280,16 @@ document.addEventListener("DOMContentLoaded", async ()=>
   let service_preset_list = document.querySelectorAll('.service-preset-btn');
   let service_confirm = document.querySelector('.service-confirm-btn');
   let service_cancel = document.querySelector('.service-cancel-btn');
+  let date_stream = document.querySelector('.time-stream');
+  let uptime_stream = document.querySelector('.uptime-stream');
 
+  const eventSource = new EventSource('/api/settings/sse?target=index');
+  eventSource.onmessage = function(event)
+  {
+    parsedInfo = JSON.parse(event.data);
+    date_stream.innerHTML = "Текущее время: " + parsedInfo["date"];
+    uptime_stream.innerHTML = "Время работы: " + parsedInfo["uptime"];
+  }
 
   async function outer()
   {

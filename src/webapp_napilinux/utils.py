@@ -351,7 +351,7 @@ def findparam(_path, word):
     return result
 
 
-def generate_event():
+def generate_modem_state():
     last_state = None
     last_address = None
     modem = ModemControl()
@@ -390,7 +390,6 @@ def generate_event():
                             pulled_config[0], pulled_config[1], pulled_config[2], pulled_config[3],
                             ip_status[:-1], gw_status[:-1], dns_status[:-1])
             json_modem_config = json.dumps(modem_config)
-            # print(json_modem_config)
             last_address = ip_status
             last_state = modem_code_status
             yield f"data: {json_modem_config}\n\n"
@@ -401,6 +400,12 @@ def generate_event():
 
         time.sleep(0.5)
 
+def generate_index():
+    while True:
+        json_data = json.dumps({"date": sys_date(), "uptime": sys_uptime(),})
+        yield f"data: {json_data}\n"
+        yield f"retry: 2000\n\n"
+        time.sleep(1)
 
 def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):
     """Считывает данные с входного кортежа, и записывает в конфигурационый файл для сервиса systemd-networkd"""
@@ -577,8 +582,6 @@ def sys_uptime():
 
 
 def sys_date():
-    # now = datetime.now()
-    # date = now.strftime("%d/%m/%Y %H:%M:%S")
     date = popen(
         'date +"%Y-%m-%d %H:%M:%S (%Z)"'
     ).read()
