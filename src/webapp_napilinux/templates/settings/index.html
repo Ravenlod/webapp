@@ -212,7 +212,7 @@
       </use></svg>Системные службы
   </div>
   <ul class="service-list-view list-group list-group-flush">
-      
+      <!-- Generated service list -->
   </ul>
 </div>
 
@@ -223,7 +223,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-          <p> Подтвердите, что действительно хотите продолжить: </p>
+          <p class="service-modal-text-field"> <!-- Generated description --> </p>
       </div>
       <div class="modal-footer">
           <button type="button" class="service-confirm-btn btn btn-primary" data-bs-dismiss="modal">Подтвердить</button>
@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async ()=>
     service_list.innerHTML += 
     `<li class="list-group-item"><div class="row justify-content-start">
 
-      <div class="col">
+      <div class="col service-name">
         ${element[0]}
       </div>
       <div class="col text-end">
@@ -280,6 +280,7 @@ document.addEventListener("DOMContentLoaded", async ()=>
   let service_preset_list = document.querySelectorAll('.service-preset-btn');
   let service_confirm = document.querySelector('.service-confirm-btn');
   let service_cancel = document.querySelector('.service-cancel-btn');
+  let service_text_field = document.querySelector('.service-modal-text-field');
   let date_stream = document.querySelector('.time-stream');
   let uptime_stream = document.querySelector('.uptime-stream');
 
@@ -316,11 +317,12 @@ document.addEventListener("DOMContentLoaded", async ()=>
     service_status.addEventListener('click', async ()=>
     {
       data = {name: "service-status", data: [index, service_status.innerHTML]}
-      
+      let service_name = service_status.closest('li').querySelector('.service-name').innerHTML
+
       //Глобальная переменная для хранения текущей кнопки
       currentButton = service_status;
       currentOption = "service_status";
-
+      service_text_field.innerHTML = "Подтвердите, что хотите изменить состояние службы " + service_name + ":";
       service_confirm.addEventListener('click', outer);
       
       service_cancel.addEventListener('click', () =>
@@ -335,11 +337,12 @@ document.addEventListener("DOMContentLoaded", async ()=>
     service_preset.addEventListener('click', async ()=>
     {
       data = {name: "service-preset", data: [index, service_preset.innerHTML]}
-      
+      let service_name = service_preset.closest('li').querySelector('.service-name').innerHTML
+
       //Глобальная переменная для хранения текущей кнопки
       currentButton = service_preset;
       currentOption = "service_preset";
-
+      service_text_field.innerHTML = "Подтвердите, что хотите изменить состояние службы " + service_name + ":";
       service_confirm.addEventListener('click', outer);
       
       service_cancel.addEventListener('click', () =>
