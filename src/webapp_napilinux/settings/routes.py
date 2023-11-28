@@ -141,7 +141,7 @@ def routes(bp):
             temp_file_path = path.join('/tmp', firmware_file.filename)
             firmware_file.save(temp_file_path)
 
-            cmd = ['swupdate', '-v', temp_file_path]
+            cmd = ['/usr/bin/napilinux-update ', temp_file_path]
             output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
 
             return jsonify({'message': 'Firmware update complete', 'output': output.decode('utf-8')})
