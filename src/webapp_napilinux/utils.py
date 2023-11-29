@@ -413,6 +413,7 @@ def generate_log(file_path):
     output = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, text=True)
     for line in output.stdout:
         yield f"data: {line.strip()}\n\n"
+        print(line.strip())
 
 def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):
     """Считывает данные с входного кортежа, и записывает в конфигурационый файл для сервиса systemd-networkd"""

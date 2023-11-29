@@ -138,7 +138,9 @@ def routes(bp):
     @login_required
 
     def update_handler():
-        if request.json:
+        print("OK")
+        print(request.files['file'].filename)
+        if request.is_json:
             config = request.json
             if not config or not 'name' in config:
                 abort(400)
@@ -227,8 +229,10 @@ def routes(bp):
                         else:
                             sys_service_manage(service_installed[int(config['data'][0])], "enable")
         elif 'file' in request.files:
+            print("File received")    
             firmware_file = request.files['file']
             temp_file_path = path.join('/tmp', firmware_file.filename)
+            print(temp_file_path)
             firmware_file.save(temp_file_path)
             return jsonify({"file_path": temp_file_path}), 200
         return jsonify({"message": "Resource updated successfully"}), 200

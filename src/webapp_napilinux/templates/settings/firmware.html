@@ -40,7 +40,7 @@
                 <form class="g-3 input-form"  enctype="multipart/form-data">
                     <input class="form-control" type="file" accept=".swu" />
                     <br>
-                    <button class="btn btn-primary" type="submit" value="Применить">
+                    <button class="btn btn-primary" type="button" value="Применить">
                         Обновить
                     </button>
                 </form>
@@ -73,18 +73,22 @@
 let log_output = document.querySelector('.log-output');
 let input_form = document.querySelector('.input-form');
 let input_button = input_form.querySelector('button');
+
+log_output.innerHTML = 'Welcome to the log output!' + '<br>';
 input_button.addEventListener('click', async () =>
 {
-    let file = input_form.querySelector('input').files[0];
-    const formData = new FormData();
+    log_output.innerHTML += 'Button pressed!' + '<br>';
+
+    let file = input_form.querySelector('input[type="file"]').files[0];
+    let formData = new FormData();
     formData.append('file', file);
-    const response = await fetch("/api/settings/update", {
+    let response = await fetch("/api/settings/update", {
       method: "PUT",
       body: formData,
     });
-    const result = await response.json();
+    let result = await response.json();
     log_output.innerHTML += result['file_path'] + "<br>";
-    const eventSource = new EventSource(`/api/settings/sse?target=update&path=${result['file_path']}`);
+    let eventSource = new EventSource(`/api/settings/sse?target=update&path=${result['file_path']}`);
     eventSource.onmessage = function(event)
     {
         log_output.innerHTML += event.data + "<br>";
