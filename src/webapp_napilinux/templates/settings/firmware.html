@@ -37,8 +37,8 @@
                Обновление прошивки
             </div>
             <div class="card-body">
-                <form class="g-3" method="POST" action="{{ url_for('settings.firmware_settings') }}" enctype="multipart/form-data">
-                    <input class="form-control" type="file" name="firmware" accept=".swu" id="firmware" />
+                <form class="g-3 input-form"  enctype="multipart/form-data">
+                    <input class="form-control" type="file" accept=".swu" />
                     <br>
                     <button class="btn btn-primary" type="submit" value="Применить">
                         Обновить
@@ -49,4 +49,54 @@
         <br>
     </div>
 </div>
+
+<div class="row d-flex justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header">
+               Лог
+            </div>
+            <div class="card-body">
+                <div class="log-output">
+
+                </div>
+            </div>
+        </div>
+        <br>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+let log_output = document.querySelector('.log-output');
+let input_form = document.querySelector('.input-form');
+let input_button = input_form.querySelector('button');
+input_button.addEventListener('click', async () =>
+{
+    let file = input_form.querySelector('input').files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch("/api/settings/update", {
+      method: "PUT",
+      body: formData,
+    });
+    const result = await response.json();
+    log_output.innerHTML += result['file_path'] + "<br>";
+    const eventSource = new EventSource(`/api/settings/sse?target=update&path=${result['file_path']}`);
+    eventSource.onmessage = function(event)
+    {
+        log_output.innerHTML += event.data + "<br>";
+    }
+    eventSource.onerror = (event) => {
+        if (event.readyState === EventSource.CLOSED) {
+            console.log('Connection closed');
+        } else {
+            console.error('Error occurred:', event);
+        }
+    };
+})
+
+</script>
 {% endblock %}

@@ -134,18 +134,6 @@ def routes(bp):
     @bp.route("/firmware", methods=['GET', 'POST'])
     @login_required
     def firmware_settings():
-
-        if request.method == "POST":
-            firmware_file = request.files['firmware']
-            # return Response(update_firmware(firmware_file), mimetype='text/event-stream')
-            temp_file_path = path.join('/tmp', firmware_file.filename)
-            firmware_file.save(temp_file_path)
-
-            cmd = ['/usr/bin/napilinux-update ', temp_file_path]
-            output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
-
-            return jsonify({'message': 'Firmware update complete', 'output': output.decode('utf-8')})
-
         return render_template(
             'settings/firmware.html'
         )

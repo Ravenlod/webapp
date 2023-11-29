@@ -17,7 +17,7 @@ class Config:
     ACTIVE_FOLDER = "/data/active/"
     LORABRIDGE_CFG = "/etc/lorabridge/lorabridge.conf"
     SESSION_COOKIE_NAME = "nnz_session"
-    WEB_VERSION = "v.0.0.1-beta2122"
+    WEB_VERSION = "0.2.0"
     # TODO: В будущем парсить версии из файла swupdate
     SW_VERSION = "v.0.0.2-beta13"
     HW_VERSION = "rev3.3-FS-C1"

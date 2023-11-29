@@ -8,7 +8,7 @@ from flask_login import login_required
 from flask import flash, request, jsonify, session, Response, abort
 
 from ..utils import (sys_service_manage, sys_soft_reset, db_clean, sys_auto_timezone, sys_reboot,
-                       sys_poweroff, ModemControl, generate_modem_state, generate_index)
+                    sys_poweroff, ModemControl, generate_modem_state, generate_index, generate_log)
 
 
 def routes(bp):
@@ -22,6 +22,9 @@ def routes(bp):
             return Response(generate_modem_state(), content_type='text/event-stream')
         elif target == "index":
             return Response(generate_index(), content_type='text/event-stream')
+        elif target == "update":
+            file_path = request.args.get('path', 'none')
+            return Response(generate_log(file_path), content_type='text/event-stream')
         else: 
             return
 
@@ -135,92 +138,97 @@ def routes(bp):
     @login_required
 
     def update_handler():
-        config = request.json
-        if not config or not 'name' in config:
-            abort(400)
-        else:
-            if config['name'] == "connection-switch":
-                modem = ModemControl()
-                con_status = request.json
-                state = con_status.get('status')
+        if request.json:
+            config = request.json
+            if not config or not 'name' in config:
+                abort(400)
+            else:
+                if config['name'] == "connection-switch":
+                    modem = ModemControl()
+                    con_status = request.json
+                    state = con_status.get('status')
 
-                if state:
-                    modem.modem_delete_connection()
-                else:
-                    modem_connection_config = session.get('modem_connection_config',
-                                                        (modem.modem_get_init_apn(), 4, '', ''))
-                    modem.modem_add_connection(modem_connection_config)
-
-            elif config['name'] == "connection-form":
-                apn_info = config['apn']
-                ip_info = int(config['ip'])
-                user_info = config["user"]
-                password_info = config["password"]
-                conn_config_input = (apn_info, ip_info, user_info, password_info)
-
-                if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
-                    conn_config_input = ('internet', ip_info, '', '')
-
-                session['modem_connection_config'] = conn_config_input
-                modem = ModemControl()
-                modem.modem_add_connection(conn_config_input)
-
-            elif config['name'] == "service-status":
-                if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
-                    service_list = [
-                        'systemd-networkd',
-                        'systemd-resolved',
-                        'telegraf',
-                        'lorabridge',
-                        'mosquitto',
-                        'grafana-server',
-                        'influxdb',
-                        'swupdate',
-                    ]
-                    service_installed = []
-
-                    # Check installed service status
-                    for i in service_list:
-                        try:
-                            name = str(i).split(".")[0]
-                            subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
-                            service_installed.append(name)
-                        except subprocess.CalledProcessError:
-                            pass
-                            # return jsonify({"message": "Service not found"}), 404
-
-                    if config['data'][1] == "Active":        
-                        sys_service_manage(service_installed[int(config['data'][0])], "stop")
+                    if state:
+                        modem.modem_delete_connection()
                     else:
-                        sys_service_manage(service_installed[int(config['data'][0])], "start")
+                        modem_connection_config = session.get('modem_connection_config',
+                                                            (modem.modem_get_init_apn(), 4, '', ''))
+                        modem.modem_add_connection(modem_connection_config)
 
-            elif config['name'] == "service-preset":
-                if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
-                    service_list = [
-                        'systemd-networkd',
-                        'systemd-resolved',
-                        'telegraf',
-                        'lorabridge',
-                        'mosquitto',
-                        'grafana-server',
-                        'influxdb',
-                        'swupdate',
-                    ]
-                    service_installed = []
+                elif config['name'] == "connection-form":
+                    apn_info = config['apn']
+                    ip_info = int(config['ip'])
+                    user_info = config["user"]
+                    password_info = config["password"]
+                    conn_config_input = (apn_info, ip_info, user_info, password_info)
 
-                    # Check installed service status
-                    for i in service_list:
-                        try:
-                            name = str(i).split(".")[0]
-                            subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
-                            service_installed.append(name)
-                        except subprocess.CalledProcessError:
-                            pass
-                            # return jsonify({"message": "Service not found"}), 404
+                    if conn_config_input == ("", ip_info, "", "") or conn_config_input[0] == '':
+                        conn_config_input = ('internet', ip_info, '', '')
 
-                    if config['data'][1] == "Enabled":        
-                        sys_service_manage(service_installed[int(config['data'][0])], "disable")
-                    else:
-                        sys_service_manage(service_installed[int(config['data'][0])], "enable")
-        
+                    session['modem_connection_config'] = conn_config_input
+                    modem = ModemControl()
+                    modem.modem_add_connection(conn_config_input)
+
+                elif config['name'] == "service-status":
+                    if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
+                        service_list = [
+                            'systemd-networkd',
+                            'systemd-resolved',
+                            'telegraf',
+                            'lorabridge',
+                            'mosquitto',
+                            'grafana-server',
+                            'influxdb',
+                            'swupdate',
+                        ]
+                        service_installed = []
+
+                        # Check installed service status
+                        for i in service_list:
+                            try:
+                                name = str(i).split(".")[0]
+                                subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
+                                service_installed.append(name)
+                            except subprocess.CalledProcessError:
+                                pass
+                                # return jsonify({"message": "Service not found"}), 404
+
+                        if config['data'][1] == "Active":        
+                            sys_service_manage(service_installed[int(config['data'][0])], "stop")
+                        else:
+                            sys_service_manage(service_installed[int(config['data'][0])], "start")
+
+                elif config['name'] == "service-preset":
+                    if path.exists('/usr/bin/systemctl') or path.exists('/bin/systemctl') is True:
+                        service_list = [
+                            'systemd-networkd',
+                            'systemd-resolved',
+                            'telegraf',
+                            'lorabridge',
+                            'mosquitto',
+                            'grafana-server',
+                            'influxdb',
+                            'swupdate',
+                        ]
+                        service_installed = []
+
+                        # Check installed service status
+                        for i in service_list:
+                            try:
+                                name = str(i).split(".")[0]
+                                subprocess.check_output(["systemctl", "cat", f"{name}"], stderr=subprocess.STDOUT)
+                                service_installed.append(name)
+                            except subprocess.CalledProcessError:
+                                pass
+                                # return jsonify({"message": "Service not found"}), 404
+
+                        if config['data'][1] == "Enabled":        
+                            sys_service_manage(service_installed[int(config['data'][0])], "disable")
+                        else:
+                            sys_service_manage(service_installed[int(config['data'][0])], "enable")
+        elif 'file' in request.files:
+            firmware_file = request.files['file']
+            temp_file_path = path.join('/tmp', firmware_file.filename)
+            firmware_file.save(temp_file_path)
+            return jsonify({"file_path": temp_file_path}), 200
         return jsonify({"message": "Resource updated successfully"}), 200

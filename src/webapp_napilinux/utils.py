@@ -407,6 +407,13 @@ def generate_index():
         yield f"retry: 2000\n\n"
         time.sleep(1)
 
+def generate_log(file_path):
+    cmd = [f"/usr/bin/napilinux-update {file_path}"]
+    print(file_path)
+    output = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, text=True)
+    for line in output.stdout:
+        yield f"data: {line.strip()}\n\n"
+
 def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):
     """Считывает данные с входного кортежа, и записывает в конфигурационый файл для сервиса systemd-networkd"""
     config_path = '/etc/systemd/network/30-modem.network'
