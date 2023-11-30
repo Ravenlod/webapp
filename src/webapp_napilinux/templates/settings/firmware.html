@@ -77,30 +77,28 @@ let input_button = input_form.querySelector('button');
 log_output.innerHTML = 'Welcome to the log output!' + '<br>';
 input_button.addEventListener('click', async () =>
 {
-    log_output.innerHTML += 'Button pressed!' + '<br>';
+    log_output.innerHTML += 'Begin file transfer' + '<br>';
 
     let file = input_form.querySelector('input[type="file"]').files[0];
     let formData = new FormData();
     formData.append('file', file);
+    // log_output.innerHTML +=  `<p class="progress-bar"></p> <br>`;
     let response = await fetch("/api/settings/update", {
       method: "PUT",
       body: formData,
     });
     let result = await response.json();
-    log_output.innerHTML += result['file_path'] + "<br>";
-    let eventSource = new EventSource(`/api/settings/sse?target=update&path=${result['file_path']}`);
+    log_output.innerHTML += result['message'] + "<br>";
+
+    let eventSource = new EventSource(`/api/settings/sse?target=update`);
     eventSource.onmessage = function(event)
     {
         log_output.innerHTML += event.data + "<br>";
     }
     eventSource.onerror = (event) => {
-        if (event.readyState === EventSource.CLOSED) {
-            console.log('Connection closed');
-        } else {
-            console.error('Error occurred:', event);
-        }
+        eventSource.close();
+        log_output.innerHTML += "Connection closed" + "<br>";
     };
 })
-
 </script>
 {% endblock %}

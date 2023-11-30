@@ -23,7 +23,8 @@ def routes(bp):
         elif target == "index":
             return Response(generate_index(), content_type='text/event-stream')
         elif target == "update":
-            file_path = request.args.get('path', 'none')
+            file_path = session["update_file"]
+            session.pop("update_file", None)
             return Response(generate_log(file_path), content_type='text/event-stream')
         else: 
             return
@@ -138,8 +139,6 @@ def routes(bp):
     @login_required
 
     def update_handler():
-        print("OK")
-        print(request.files['file'].filename)
         if request.is_json:
             config = request.json
             if not config or not 'name' in config:
@@ -229,10 +228,12 @@ def routes(bp):
                         else:
                             sys_service_manage(service_installed[int(config['data'][0])], "enable")
         elif 'file' in request.files:
-            print("File received")    
             firmware_file = request.files['file']
             temp_file_path = path.join('/tmp', firmware_file.filename)
             print(temp_file_path)
             firmware_file.save(temp_file_path)
-            return jsonify({"file_path": temp_file_path}), 200
+            session["update_file"] = temp_file_path
+            print("File received")
+            return jsonify({"message": "File received"}), 200
+
         return jsonify({"message": "Resource updated successfully"}), 200

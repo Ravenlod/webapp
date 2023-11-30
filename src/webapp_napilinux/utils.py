@@ -3,7 +3,7 @@ import time
 from os import popen, path, system
 # from datetime import datetime
 from pydbus import SystemBus
-from flask import flash
+from flask import flash, Response
 from gi.repository import GLib
 import json
 
@@ -408,12 +408,34 @@ def generate_index():
         time.sleep(1)
 
 def generate_log(file_path):
-    cmd = [f"/usr/bin/napilinux-update {file_path}"]
-    print(file_path)
-    output = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, text=True)
-    for line in output.stdout:
-        yield f"data: {line.strip()}\n\n"
-        print(line.strip())
+    def execute_update(file_path):
+        cmd = [f"/usr/bin/napilinux-update {file_path}"]
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, text=True)
+        new_data_received = True
+
+        while output.poll() is None or new_data_received:
+            new_data_received = False
+            for line in iter(output.stdout.readline, ''):
+                yield line.strip()
+                new_data_received = True
+            time.sleep(0.1)
+        output.wait()
+
+    try:
+        if file_path is None:
+            raise ValueError("File path is None")
+        
+        for output_line in execute_update(file_path):
+            yield f"data: {output_line}\n"
+            yield f"retry: 10000\n\n"
+            print(output_line)
+        raise GeneratorExit
+    except GeneratorExit:
+        yield f"data: SSE connection closed!\n\n"
+        print("SSE connection closed!")
+    except ValueError as e:
+        yield f"data: {e}\n\n"
+        print(e)
 
 def sys_wireless_network_config(config_input: tuple[str, str, str, tuple[str]]):
     """Считывает данные с входного кортежа, и записывает в конфигурационый файл для сервиса systemd-networkd"""
