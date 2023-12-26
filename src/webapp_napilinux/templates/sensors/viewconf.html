@@ -2,22 +2,23 @@
 {% block title %}Просмотр конфигурации{% endblock %}
 {% block title_page %}Просмотр конфигурации{% endblock %}
 {% block content %}
+<div class="alert alert-secondary alert-dismissible fade show text-center" role="alert">
+    <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
+    Чтобы отредактировать этот шаблон, сперва нужно его активировать, либо загрузите шаблон в нужной конфигурации!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<a href="{{ url_for('sensors.index') }}"><button type="submit" class="btn btn-primary">Назад</button></a>
+<hr>
+<pre>
+    <code class="language-toml">
+        {{ text }}
+    </code>
+</pre>
+<hr>
+<a href="{{ url_for('sensors.index') }}"><button type="submit" class="btn btn-primary">Назад</button></a>
+<hr>
+
 <link rel="stylesheet" href="/static/css/github.min.css">
 <script src="/static/js/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
-<div class="alert alert-secondary alert-dismissible fade show text-center" role="alert">
-    <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
-  Чтобы отредактировать этот шаблон, сперва нужно его активировать, либо загрузите шаблон в нужной конфигурации!
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-        <a href="{{ url_for('sensors.index') }}"><button type="submit" class="btn btn-primary">Назад</button></a>
-    <hr>
-    <pre>
-        <code class="language-toml">
-            {{ text }}
-        </code>
-    </pre>
-    <hr>
-    <a href="{{ url_for('sensors.index') }}"><button type="submit" class="btn btn-primary">Назад</button></a>
-<hr>
 {% endblock %}

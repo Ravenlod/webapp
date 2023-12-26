@@ -3,6 +3,18 @@
 {% block title_page %}Настройка датчика{% endblock %}
 {% block content %}
 
+
+<form class="g-3" method="POST" action="{{ current_sensor + '?upg=y' }}">
+    <button class="btn btn-primary" type="submit" value="Применить">
+        Применить
+    </button>
+    <br><pre>
+        <textarea class="form-control" id="{{ form_conf.conf_text_area.name }}"
+                  name="{{ form_conf.conf_text_area.name }}"
+                  rows="25">{{ text }}</textarea>
+    </pre>
+</form>
+
 <script src="{{ url_for('static', filename='codemirror/lib/codemirror.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='codemirror/lib/codemirror.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='codemirror/theme/dracula.css') }}">
@@ -38,16 +50,6 @@
 }
 .cm-s-dracula .CodeMirror-matchingbracket { text-decoration: none; color: #f5f502 !important; }
 </style>
-<form class="g-3" method="POST" action="{{ current_sensor + '?upg=y' }}">
-    <button class="btn btn-primary" type="submit" value="Применить">
-        Применить
-    </button>
-    <br><pre>
-        <textarea class="form-control" id="{{ form_conf.conf_text_area.name }}"
-                  name="{{ form_conf.conf_text_area.name }}"
-                  rows="25">{{ text }}</textarea>
-    </pre>
-</form>
 
 <script type="text/javascript">
 CodeMirror.commands.autocomplete = function(cm) {
