@@ -10,8 +10,62 @@ from flask import flash, request, jsonify, session, Response, abort
 from ..utils import (sys_service_manage, sys_soft_reset, db_clean, sys_auto_timezone, sys_reboot,
                     sys_poweroff, ModemControl, generate_modem_state, generate_index, generate_log)
 
+from ..forms.sensors import SensorsTextConf, SensorAddConf
+
 
 def routes(bp):
+
+
+
+    # @bp.route('/sensors', methods=["GET"])
+    # @login_required
+    # def sensors():
+    #     return jsonify(generate_index())
+
+    @bp.route('/sensors/create', methods=["POST"])
+    @login_required
+    def sensors_create_handler():
+        config = request.json
+        if not config or not 'name' in config:
+            abort(400)
+        else:
+            if config['name'] == "upload":
+                if 'file' not in request.files:
+                    flash('No file part')
+                    return redirect(request.url)
+                file = request.files['file']
+                # TODO: Check file size and output alert
+                # weight = 50
+                # if file.seek(0,2) > weight:
+                #     print('LARGE')
+                #     flash(f'Слишком большой файл! Больше чем разрешено на {file.seek(0,2)-weight}Bytes')
+                #     flash(file.tell())
+                #     return redirect(request.url)
+                if file.filename == '':
+                    flash('Не выбран файл!')
+                    return redirect(request.url)
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                    return redirect(url_for('sensors.index', name=filename))
+                else:
+                    flash('Файл имеет неверный формат!')
+                    
+            elif config['name'] == "add":
+                form = SensorAddConf()
+                file = f'{request.form.get(form.sensor_name.name)}.conf'
+                file_name = secure_filename(file)
+                upload_path = safe_join(current_app.config["UPLOAD_FOLDER"], file_name)
+                conf_text = request.form.get(form.conf_text.name)
+                with open(upload_path, 'w') as f_new:
+                    f_new.write(str(conf_text))
+                    f_new.close()
+                return redirect(url_for('sensors.index'))
+
+        return_data = {"status": "success", "message": "Sensor created"}
+        return jsonify(return_data), 200
+
+    
 
 
     @bp.route('/settings/sse', methods=["GET"])
@@ -86,7 +140,7 @@ def routes(bp):
 
     @bp.route("/settings/create", methods=['POST'])
     @login_required
-    def create_handler():
+    def settings_create_handler():
         config = request.json
         if not config or not 'name' in config:
             abort(400)
@@ -138,7 +192,7 @@ def routes(bp):
     @bp.route("/settings/update", methods=['PUT'])
     @login_required
 
-    def update_handler():
+    def settings_update_handler():
         if request.is_json:
             config = request.json
             if not config or not 'name' in config:

@@ -38,34 +38,16 @@ def routes(bp):
         return render_template('sensors/index.html', sensors_list=sensors_list)
 
 
-    @bp.route('/upload', methods=['GET', 'POST'])
+    @bp.route('/upload', methods=['GET'])
     @login_required
-    def upload_sensor():
-        if request.method == 'POST':
-
-            if 'file' not in request.files:
-                flash('No file part')
-                return redirect(request.url)
-            file = request.files['file']
-            # TODO: Check file size and output alert
-            # weight = 50
-            # if file.seek(0,2) > weight:
-            #     print('LARGE')
-            #     flash(f'Слишком большой файл! Больше чем разрешено на {file.seek(0,2)-weight}Bytes')
-            #     flash(file.tell())
-            #     return redirect(request.url)
-            if file.filename == '':
-                flash('Не выбран файл!')
-                return redirect(request.url)
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                return redirect(url_for('sensors.index', name=filename))
-            else:
-                flash('Файл имеет неверный формат!')
-
+    def upload_sensor():      
         return render_template('sensors/upload.html'), 201
 
+    @bp.route('/add', methods=['GET'])
+    @login_required
+    def add_sensor():
+        form = SensorAddConf()
+        return render_template('sensors/add.html', form=form)
 
     @bp.route("/<sensor_name>", methods=['GET', 'POST'])
     @login_required
@@ -158,20 +140,3 @@ def routes(bp):
 
             return redirect(url_for('sensors.index', name=filename))
         return render_template('sensors/sensor.html', text=text, form_conf=form_conf, current_sensor=request.path)
-
-
-    @bp.route('/add', methods=['GET', 'POST'])
-    @login_required
-    def add_sensor():
-        form = SensorAddConf()
-        if request.method == 'POST':
-            file = f'{request.form.get(form.sensor_name.name)}.conf'
-            file_name = secure_filename(file)
-            upload_path = safe_join(current_app.config["UPLOAD_FOLDER"], file_name)
-            conf_text = request.form.get(form.conf_text.name)
-            with open(upload_path, 'w') as f_new:
-                f_new.write(str(conf_text))
-                f_new.close()
-            return redirect(url_for('sensors.index'))
-
-        return render_template('sensors/add.html', form=form)

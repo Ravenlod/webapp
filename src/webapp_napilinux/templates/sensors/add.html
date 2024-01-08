@@ -19,7 +19,7 @@
         <label for="{{ form.sensor_name.name }}">{{ form.sensor_name.label }}</label>
     </div>
     <pre>
-        <textarea class="form-control" id="{{ form.conf_text.name }}"
+        <textarea class="form-control text-field" id="{{ form.conf_text.name }}"
                   name="{{ form.conf_text.name }}"
                   rows="25">## Тут пишем комментарий
 [[inputs.modbus]]
@@ -40,11 +40,23 @@
   ]
 </textarea>
     </pre>
-    <button class="btn btn-primary" type="submit" value="Добавить">
+    <button class="btn btn-primary confirm-button" type="button" value="Добавить">
         Добавить
     </button>
     <br>
 </form>
+
+<script src="{{ url_for('static', filename='bootstrap/js/select_options_button_handler.js') }}"></script>
+
+<script>
+let confirmButton = document.querySelector('.confirm-button');
+let textField = document.querySelector('text-field');
+data = textField.innerHTML;
+console.log(data);
+returnData = await postJSON("/api/sensors/create", "POST", data);
+
+
+</script>
 
 
 <script src="{{ url_for('static', filename='codemirror/lib/codemirror.js') }}"></script>
